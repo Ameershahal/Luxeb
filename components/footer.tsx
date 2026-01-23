@@ -147,7 +147,7 @@ export function Footer() {
         href="https://wa.me/15551234567"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50"
+        className="fixed bottom-24 right-6 lg:bottom-6 h-14 w-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50"
         aria-label="Chat on WhatsApp"
       >
         <MessageCircle className="h-6 w-6" />
