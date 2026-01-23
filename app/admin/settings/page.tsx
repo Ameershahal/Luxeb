@@ -36,7 +36,11 @@ export default function AdminSettings() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
-              <Textarea id="address" defaultValue="123 Luxury Avenue, New York, NY 10001" rows={2} />
+              <Textarea
+                id="address"
+                defaultValue="142C Shaw Heath, Stockport, Greater Manchester, SK2 6QS"
+                rows={2}
+              />
             </div>
             <Button className="w-full bg-primary text-primary-foreground">Save Changes</Button>
           </CardContent>

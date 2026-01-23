@@ -48,9 +48,11 @@ export function ContactContent() {
                 <div>
                   <p className="font-medium text-foreground">Address</p>
                   <p className="text-muted-foreground">
-                    123 Luxury Avenue
+                    142C Shaw Heath
                     <br />
-                    New York, NY 10001
+                    Stockport, Greater Manchester
+                    <br />
+                    SK2 6QS
                   </p>
                 </div>
               </div>

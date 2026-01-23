@@ -98,9 +98,11 @@ export function Footer() {
               <li className="flex gap-3 text-sm text-secondary-foreground/70">
                 <MapPin className="h-5 w-5 flex-shrink-0 text-primary" />
                 <span>
-                  123 Luxury Avenue
+                  142C Shaw Heath
                   <br />
-                  New York, NY 10001
+                  Stockport, Greater Manchester
+                  <br />
+                  SK2 6QS
                 </span>
               </li>
               <li className="flex gap-3 text-sm text-secondary-foreground/70">
