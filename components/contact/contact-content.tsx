@@ -77,7 +77,7 @@ export function ContactContent() {
                 </div>
                 <div>
                   <p className="font-medium text-foreground">Phone</p>
-                  <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                  <p className="text-muted-foreground">+44 7450 239432</p>
                 </div>
               </div>
 
@@ -87,7 +87,7 @@ export function ContactContent() {
                 </div>
                 <div>
                   <p className="font-medium text-foreground">Email</p>
-                  <p className="text-muted-foreground">hello@maisonrouge.com</p>
+                  <p className="text-muted-foreground">info@luxebeautyandtrainingacademy.com</p>
                 </div>
               </div>
             </div>

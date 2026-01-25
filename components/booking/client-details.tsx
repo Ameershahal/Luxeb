@@ -112,7 +112,7 @@ export function ClientDetails({ clientData, onUpdate, onNext, onBack }: ClientDe
               type="tel"
               value={formData.phone}
               onChange={(e) => handleChange("phone", e.target.value)}
-              placeholder="+1 (555) 123-4567"
+              placeholder="+44 7450 239432"
               className={errors.phone ? "border-destructive" : ""}
             />
             {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}

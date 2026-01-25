@@ -28,11 +28,11 @@ export default function AdminSettings() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Contact Email</Label>
-              <Input id="email" type="email" defaultValue="hello@luxebeauty.com" />
+              <Input id="email" type="email" defaultValue="info@luxebeautyandtrainingacademy.com" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" defaultValue="+1 (555) 123-4567" />
+              <Input id="phone" defaultValue="+44 7450 239432" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="address">Address</Label>

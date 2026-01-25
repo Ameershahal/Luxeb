@@ -115,11 +115,11 @@ export function Footer() {
               </li>
               <li className="flex gap-3 text-sm text-secondary-foreground/70">
                 <Phone className="h-5 w-5 flex-shrink-0 text-primary" />
-                <span>+1 (555) 123-4567</span>
+                <span>+44 7450 239432</span>
               </li>
               <li className="flex gap-3 text-sm text-secondary-foreground/70">
                 <Mail className="h-5 w-5 flex-shrink-0 text-primary" />
-                <span>hello@luxebeauty.com</span>
+                <span>info@luxebeautyandtrainingacademy.com</span>
               </li>
             </ul>
           </div>
