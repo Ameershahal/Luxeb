@@ -13,19 +13,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Helper function to convert relative URLs to absolute URLs
+    const getAbsoluteImageUrl = (imagePath: string | undefined): string | undefined => {
+      if (!imagePath) return undefined
+      
+      // If it's already an absolute URL (starts with http:// or https://), return as is
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath
+      }
+      
+      // If it's a relative path, convert to absolute URL
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+      // Remove leading slash if present and add base URL
+      const cleanPath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath
+      return `${baseUrl}/${cleanPath}`
+    }
+
     // Build line items for Stripe
-    const lineItems = items.map((item: any) => ({
-      price_data: {
-        currency: 'gbp',
-        product_data: {
-          name: item.name,
-          description: item.description || '',
-          images: item.image ? [item.image] : [],
+    const lineItems = items.map((item: any) => {
+      const imageUrl = getAbsoluteImageUrl(item.image)
+      
+      return {
+        price_data: {
+          currency: 'gbp',
+          product_data: {
+            name: item.name,
+            description: item.description || '',
+            // Only include images array if we have a valid URL
+            ...(imageUrl ? { images: [imageUrl] } : {}),
+          },
+          unit_amount: formatAmountForStripe(item.price, 'gbp'),
         },
-        unit_amount: formatAmountForStripe(item.price, 'gbp'),
-      },
-      quantity: item.quantity || 1,
-    }))
+        quantity: item.quantity || 1,
+      }
+    })
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
