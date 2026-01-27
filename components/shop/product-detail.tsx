@@ -3,13 +3,29 @@
 import { useState } from "react"
 import { Star, Minus, Plus, ShoppingBag, Heart, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { Product } from "@/lib/products"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/contexts/cart-context"
 import { useToast } from "@/hooks/use-toast"
 
 type ProductDetailProps = {
-  product: Product
+  product: {
+    id?: string
+    _id?: string
+    name: string
+    price: number
+    originalPrice?: number
+    rating: number
+    reviews: number
+    image: string
+    images: string[]
+    category: string
+    description: string
+    benefits: string[]
+    ingredients?: string
+    howToUse?: string
+    inStock: boolean
+    featured: boolean
+  }
 }
 
 export function ProductDetail({ product }: ProductDetailProps) {
@@ -19,6 +35,14 @@ export function ProductDetail({ product }: ProductDetailProps) {
   const [isWishlisted, setIsWishlisted] = useState(false)
   const { addToCart } = useCart()
   const { toast } = useToast()
+
+  // Ensure product has required fields with defaults
+  const productId = product.id || product._id || ""
+  const productImages = product.images && product.images.length > 0 ? product.images : [product.image || "/placeholder.svg"]
+  const productBenefits = product.benefits || []
+  const productRating = product.rating || 0
+  const productReviews = product.reviews || 0
+  const productInStock = product.inStock !== undefined ? product.inStock : true
 
   const incrementQuantity = () => setQuantity((prev) => Math.min(prev + 1, 10))
   const decrementQuantity = () => setQuantity((prev) => Math.max(prev - 1, 1))
@@ -32,7 +56,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
             {/* Main Image */}
             <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
               <img
-                src={product.images[selectedImage] || "/placeholder.svg"}
+                src={productImages[selectedImage] || product.image || "/placeholder.svg"}
                 alt={product.name}
                 className="h-full w-full object-cover"
               />
@@ -44,24 +68,26 @@ export function ProductDetail({ product }: ProductDetailProps) {
             </div>
 
             {/* Thumbnails */}
-            <div className="flex gap-3">
-              {product.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={cn(
-                    "relative h-20 w-20 rounded-lg overflow-hidden border-2 transition-all",
-                    selectedImage === index ? "border-primary" : "border-transparent",
-                  )}
-                >
-                  <img
-                    src={image || "/placeholder.svg"}
-                    alt={`${product.name} view ${index + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+            {productImages.length > 1 && (
+              <div className="flex gap-3">
+                {productImages.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(index)}
+                    className={cn(
+                      "relative h-20 w-20 rounded-lg overflow-hidden border-2 transition-all",
+                      selectedImage === index ? "border-primary" : "border-transparent",
+                    )}
+                  >
+                    <img
+                      src={image || "/placeholder.svg"}
+                      alt={`${product.name} view ${index + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Details */}
@@ -82,13 +108,13 @@ export function ProductDetail({ product }: ProductDetailProps) {
                     key={i}
                     className={cn(
                       "h-4 w-4",
-                      i < Math.floor(product.rating) ? "fill-accent text-accent" : "text-muted-foreground/30",
+                      i < Math.floor(productRating) ? "fill-accent text-accent" : "text-muted-foreground/30",
                     )}
                   />
                 ))}
               </div>
               <span className="text-sm text-muted-foreground">
-                {product.rating} ({product.reviews} reviews)
+                {productRating} ({productReviews} reviews)
               </span>
             </div>
 
@@ -101,16 +127,18 @@ export function ProductDetail({ product }: ProductDetailProps) {
             </div>
 
             {/* Benefits */}
-            <div className="mb-8">
-              <div className="flex flex-wrap gap-2">
-                {product.benefits.map((benefit) => (
-                  <span key={benefit} className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Check className="h-4 w-4 text-primary" />
-                    {benefit}
-                  </span>
-                ))}
+            {productBenefits.length > 0 && (
+              <div className="mb-8">
+                <div className="flex flex-wrap gap-2">
+                  {productBenefits.map((benefit, index) => (
+                    <span key={index} className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Check className="h-4 w-4 text-primary" />
+                      {benefit}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Quantity & Add to Cart */}
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -137,14 +165,32 @@ export function ProductDetail({ product }: ProductDetailProps) {
               <Button
                 variant="outline"
                 className="flex-1 h-12 rounded-full bg-transparent border-2 border-primary text-primary hover:bg-primary/10"
-                disabled={!product.inStock}
+                disabled={!productInStock}
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
-                  if (!product.inStock) return
+                  if (!productInStock) return
                   
                   try {
-                    addToCart(product, quantity)
+                    // Convert to cart format
+                    const cartProduct = {
+                      id: productId,
+                      name: product.name,
+                      price: product.price,
+                      originalPrice: product.originalPrice,
+                      image: product.image,
+                      images: productImages,
+                      category: product.category,
+                      description: product.description,
+                      benefits: productBenefits,
+                      ingredients: product.ingredients,
+                      howToUse: product.howToUse,
+                      inStock: productInStock,
+                      featured: product.featured,
+                      rating: productRating,
+                      reviews: productReviews,
+                    }
+                    addToCart(cartProduct, quantity)
                     toast({
                       title: "Added to cart",
                       description: `${quantity}x ${product.name} added to your cart`,
@@ -160,15 +206,15 @@ export function ProductDetail({ product }: ProductDetailProps) {
                 }}
               >
                 <ShoppingBag className="mr-2 h-5 w-5" />
-                {product.inStock ? "Add to Cart" : "Out of Stock"}
+                {productInStock ? "Add to Cart" : "Out of Stock"}
               </Button>
 
               {/* Buy Now */}
               <Button
                 className="flex-1 h-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full"
-                disabled={!product.inStock}
+                disabled={!productInStock}
                 onClick={async () => {
-                  if (!product.inStock) return
+                  if (!productInStock) return
                   
                   try {
                     const response = await fetch('/api/create-checkout-session', {
@@ -183,13 +229,13 @@ export function ProductDetail({ product }: ProductDetailProps) {
                             description: product.description,
                             price: product.price,
                             quantity: quantity,
-                            image: product.images[0],
+                            image: productImages[0] || product.image,
                           },
                         ],
                         type: 'product',
                         metadata: {
                           type: 'product',
-                          productId: product.id,
+                          productId: productId,
                           productName: product.name,
                           quantity: quantity.toString(),
                         },

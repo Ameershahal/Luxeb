@@ -21,8 +21,22 @@ async function fetchProduct(id: string) {
     if (product) {
       const productObj = product.toObject ? product.toObject() : product
       return {
-        ...productObj,
+        _id: productObj._id?.toString() || productObj._id,
         id: productObj._id?.toString() || productObj._id,
+        name: productObj.name || '',
+        price: productObj.price || 0,
+        originalPrice: productObj.originalPrice,
+        rating: productObj.rating || 0,
+        reviews: productObj.reviews || 0,
+        image: productObj.image || '/placeholder.svg',
+        images: productObj.images && productObj.images.length > 0 ? productObj.images : [productObj.image || '/placeholder.svg'],
+        category: productObj.category || 'beauty',
+        description: productObj.description || '',
+        benefits: productObj.benefits || [],
+        ingredients: productObj.ingredients,
+        howToUse: productObj.howToUse,
+        inStock: productObj.inStock !== undefined ? productObj.inStock : true,
+        featured: productObj.featured || false,
       }
     }
     return null
@@ -44,8 +58,22 @@ async function fetchAllProducts() {
     return products.map((product: any) => {
       const productObj = product.toObject ? product.toObject() : product
       return {
-        ...productObj,
+        _id: productObj._id?.toString() || productObj._id,
         id: productObj._id?.toString() || productObj._id,
+        name: productObj.name || '',
+        price: productObj.price || 0,
+        originalPrice: productObj.originalPrice,
+        rating: productObj.rating || 0,
+        reviews: productObj.reviews || 0,
+        image: productObj.image || '/placeholder.svg',
+        images: productObj.images && productObj.images.length > 0 ? productObj.images : [productObj.image || '/placeholder.svg'],
+        category: productObj.category || 'beauty',
+        description: productObj.description || '',
+        benefits: productObj.benefits || [],
+        ingredients: productObj.ingredients,
+        howToUse: productObj.howToUse,
+        inStock: productObj.inStock !== undefined ? productObj.inStock : true,
+        featured: productObj.featured || false,
       }
     })
   } catch (error) {

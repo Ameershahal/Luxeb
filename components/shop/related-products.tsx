@@ -2,10 +2,18 @@
 
 import Link from "next/link"
 import { Star } from "lucide-react"
-import type { Product } from "@/lib/products"
+
+type RelatedProduct = {
+  id?: string
+  _id?: string
+  name: string
+  price: number
+  image: string
+  rating: number
+}
 
 type RelatedProductsProps = {
-  products: Product[]
+  products: RelatedProduct[]
 }
 
 export function RelatedProducts({ products }: RelatedProductsProps) {
@@ -17,8 +25,10 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
         <h2 className="font-serif text-2xl lg:text-3xl font-medium text-foreground mb-8">You May Also Like</h2>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {products.map((product) => (
-            <Link key={product.id} href={`/shop/${product.id}`} className="group">
+          {products.map((product) => {
+            const productId = product.id || product._id || ""
+            return (
+            <Link key={productId} href={`/shop/${productId}`} className="group">
               <div className="relative overflow-hidden rounded-xl bg-card border border-border transition-all hover:shadow-lg">
                 <div className="relative aspect-square overflow-hidden bg-muted">
                   <img
@@ -38,11 +48,12 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
                     {product.name}
                   </h3>
 
-                  <span className="text-primary font-semibold mt-1 block">${product.price}</span>
+                  <span className="text-primary font-semibold mt-1 block">£{product.price}</span>
                 </div>
               </div>
             </Link>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>
