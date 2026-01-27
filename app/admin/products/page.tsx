@@ -89,6 +89,7 @@ export default function AdminProducts() {
   }
 
   const handleOpenDialog = (product?: Product) => {
+    console.log("Opening dialog for product:", product)
     if (product) {
       setEditingProduct(product)
       setFormData({
@@ -96,13 +97,13 @@ export default function AdminProducts() {
         price: product.price.toString(),
         originalPrice: product.originalPrice?.toString() || "",
         category: product.category,
-        description: product.description,
-        image: product.image,
-        images: product.images.join(", "),
-        inStock: product.inStock,
-        featured: product.featured,
-        rating: product.rating.toString(),
-        reviews: product.reviews.toString(),
+        description: product.description || "",
+        image: product.image || "",
+        images: (product.images || []).join(", "),
+        inStock: product.inStock !== undefined ? product.inStock : true,
+        featured: product.featured || false,
+        rating: (product.rating || 0).toString(),
+        reviews: (product.reviews || 0).toString(),
       })
     } else {
       setEditingProduct(null)
@@ -182,14 +183,29 @@ export default function AdminProducts() {
   }
 
   const handleDelete = async (id: string) => {
+    console.log("Deleting product:", id)
+    if (!id) {
+      toast({
+        title: "Error",
+        description: "Invalid product ID",
+        variant: "destructive",
+      })
+      return
+    }
+
     if (!confirm("Are you sure you want to delete this product?")) return
 
     try {
+      console.log("Sending DELETE request to:", `/api/admin/products/${id}`)
       const response = await fetch(`/api/admin/products/${id}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
       })
 
       const result = await response.json()
+      console.log("Delete response:", result)
 
       if (result.success) {
         toast({
@@ -208,7 +224,7 @@ export default function AdminProducts() {
       console.error("Error deleting product:", error)
       toast({
         title: "Error",
-        description: "Failed to delete product",
+        description: error instanceof Error ? error.message : "Failed to delete product",
         variant: "destructive",
       })
     }
@@ -234,9 +250,34 @@ export default function AdminProducts() {
           <h1 className="font-serif text-4xl font-medium text-foreground mb-2">Products</h1>
           <p className="text-muted-foreground">Manage your product catalog</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open)
+          if (!open) {
+            setEditingProduct(null)
+            setFormData({
+              name: "",
+              price: "",
+              originalPrice: "",
+              category: "",
+              description: "",
+              image: "",
+              images: "",
+              inStock: true,
+              featured: false,
+              rating: "0",
+              reviews: "0",
+            })
+          }
+        }}>
           <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button 
+              onClick={(e) => {
+                e.preventDefault()
+                handleOpenDialog()
+              }}
+              type="button"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add Product
             </Button>
@@ -400,7 +441,7 @@ export default function AdminProducts() {
               </TableRow>
             ) : (
               filteredProducts.map((product) => (
-                <TableRow key={product._id}>
+                <TableRow key={product._id} onClick={(e) => e.stopPropagation()}>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell className="capitalize">{product.category}</TableCell>
                   <TableCell>£{product.price}</TableCell>
@@ -416,19 +457,33 @@ export default function AdminProducts() {
                       {product.inStock ? "Active" : "Out of Stock"}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleOpenDialog(product)}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          console.log("Edit clicked for product:", product._id)
+                          handleOpenDialog(product)
+                        }}
+                        type="button"
+                        aria-label="Edit product"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDelete(product._id)}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          console.log("Delete clicked for product:", product._id)
+                          handleDelete(product._id)
+                        }}
+                        type="button"
+                        aria-label="Delete product"
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
