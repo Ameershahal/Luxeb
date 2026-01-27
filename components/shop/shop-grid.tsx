@@ -152,11 +152,6 @@ function ProductCard({ product }: { product: Product }) {
                     title: "Added to cart",
                     description: `${product.name} added to your cart`,
                   })
-                  // Force a small delay to ensure state updates
-                  setTimeout(() => {
-                    // Trigger a custom event to update navbar
-                    window.dispatchEvent(new Event('cartUpdated'))
-                  }, 100)
                 } catch (error) {
                   console.error('Error adding to cart:', error)
                   toast({

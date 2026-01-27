@@ -20,7 +20,7 @@ const navLinks = [
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { getTotalItems } = useCart()
+  const { getTotalItems, cartItems } = useCart()
   const [cartCount, setCartCount] = useState(0)
 
   useEffect(() => {
@@ -31,12 +31,12 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Update cart count when it changes
+  // Update cart count when cartItems change (direct subscription)
   useEffect(() => {
     setCartCount(getTotalItems())
-  }, [getTotalItems])
+  }, [cartItems, getTotalItems])
 
-  // Listen for cart update events
+  // Listen for cart update events (backup method)
   useEffect(() => {
     const handleCartUpdate = () => {
       setCartCount(getTotalItems())

@@ -62,24 +62,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.product.id === product.id)
 
+      let updated: CartItem[]
       if (existingItem) {
-        const updated = prevItems.map((item) =>
+        updated = prevItems.map((item) =>
           item.product.id === product.id
             ? { ...item, quantity: item.quantity + quantity }
             : item
         )
         console.log('Cart updated (existing item):', updated)
-        return updated
+      } else {
+        updated = [...prevItems, { product, quantity }]
+        console.log('Cart updated (new item):', updated)
       }
 
-      const updated = [...prevItems, { product, quantity }]
-      console.log('Cart updated (new item):', updated)
+      // Dispatch custom event to notify navbar and other components
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: updated } }))
+      }
+
       return updated
     })
   }
 
   const removeFromCart = (productId: string) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.product.id !== productId))
+    setCartItems((prevItems) => {
+      const updated = prevItems.filter((item) => item.product.id !== productId)
+      // Dispatch custom event to notify navbar and other components
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: updated } }))
+      }
+      return updated
+    })
   }
 
   const updateQuantity = (productId: string, quantity: number) => {
@@ -88,15 +101,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
+    setCartItems((prevItems) => {
+      const updated = prevItems.map((item) =>
         item.product.id === productId ? { ...item, quantity } : item
       )
-    )
+      // Dispatch custom event to notify navbar and other components
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: updated } }))
+      }
+      return updated
+    })
   }
 
   const clearCart = () => {
     setCartItems([])
+    // Dispatch custom event to notify navbar and other components
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: [] } }))
+    }
   }
 
   const getTotalPrice = () => {

@@ -48,16 +48,42 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+    // Determine if shipping is needed (products need shipping, bookings/courses don't)
+    const requiresShipping = type === 'product' || type === 'cart'
+    
+    // Determine payment methods based on Stripe account region
+    // Klarna and Clearpay are only available in specific regions (UK, US, CA, AU, EU)
+    // If your Stripe account is in India, these won't be available
+    // Use payment configuration if provided, otherwise use direct payment methods
+    const sessionConfig: any = {
       line_items: lineItems,
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/payment/cancel`,
       metadata: metadata || {},
       customer_email: metadata?.email || undefined,
-    })
+    }
+
+    // Option 1: Use payment method configuration (recommended - managed via Stripe Dashboard)
+    if (process.env.STRIPE_PAYMENT_METHOD_CONFIGURATION_ID) {
+      sessionConfig.payment_method_configuration = process.env.STRIPE_PAYMENT_METHOD_CONFIGURATION_ID
+      // Payment methods will be determined by the configuration in Stripe Dashboard
+    } else {
+      // Option 2: Use direct payment methods (fallback)
+      // Note: Klarna and Clearpay only work if your Stripe account is in supported regions
+      // For UK-based business, ensure your Stripe account is set to UK
+      // Note: Stripe uses 'afterpay_clearpay' not 'clearpay' as the payment method type
+      sessionConfig.payment_method_types = ['card', 'klarna', 'afterpay_clearpay']
+    }
+
+    // Only require shipping address for products (not for bookings or courses)
+    if (requiresShipping) {
+      sessionConfig.shipping_address_collection = {
+        allowed_countries: ['GB', 'US', 'CA', 'AU', 'DE', 'AT', 'NL', 'BE', 'DK', 'FI', 'NO', 'SE', 'ES', 'IT', 'FR', 'PL', 'CZ', 'IE'],
+      }
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig)
 
     return NextResponse.json({ sessionId: session.id, url: session.url })
   } catch (error: any) {
