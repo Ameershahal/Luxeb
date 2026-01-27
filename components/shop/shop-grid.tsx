@@ -6,6 +6,8 @@ import { Star, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { products, categories, type Product } from "@/lib/products"
 import { cn } from "@/lib/utils"
+import { useCart } from "@/contexts/cart-context"
+import { useToast } from "@/hooks/use-toast"
 
 export function ShopGrid() {
   const [activeCategory, setActiveCategory] = useState("all")
@@ -91,6 +93,9 @@ export function ShopGrid() {
 }
 
 function ProductCard({ product }: { product: Product }) {
+  const { addToCart } = useCart()
+  const { toast } = useToast()
+
   return (
     <Link href={`/shop/${product.id}`} className="group">
       <div className="relative overflow-hidden rounded-xl bg-card border border-border transition-all duration-300 hover:shadow-xl interactive-card">
@@ -136,10 +141,17 @@ function ProductCard({ product }: { product: Product }) {
         <div className="absolute bottom-20 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
           <Button
             size="icon"
-            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg transition-all duration-300 hover:scale-110 hover:rotate-12 ripple-effect"
+            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg transition-all duration-300 hover:scale-110 hover:rotate-12 ripple-effect z-10"
             onClick={(e) => {
               e.preventDefault()
-              // Add to cart logic
+              e.stopPropagation()
+              if (product.inStock) {
+                addToCart(product, 1)
+                toast({
+                  title: "Added to cart",
+                  description: `${product.name} added to your cart`,
+                })
+              }
             }}
             disabled={!product.inStock}
           >

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Menu, X, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useCart } from "@/contexts/cart-context"
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -19,6 +20,7 @@ const navLinks = [
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { getTotalItems } = useCart()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -63,12 +65,16 @@ export function Navbar() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="relative" aria-label="Shopping cart">
-              <ShoppingBag className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-                0
-              </span>
-            </Button>
+            <Link href="/cart">
+              <Button variant="ghost" size="icon" className="relative hover:scale-110 transition-transform" aria-label="Shopping cart">
+                <ShoppingBag className="h-5 w-5" />
+                {getTotalItems() > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground animate-pulse">
+                    {getTotalItems()}
+                  </span>
+                )}
+              </Button>
+            </Link>
 
             <Link href="/booking" className="hidden sm:block">
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 transition-all duration-300 hover:scale-105 hover:shadow-lg ripple-effect">

@@ -5,6 +5,8 @@ import { Star, Minus, Plus, ShoppingBag, Heart, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Product } from "@/lib/products"
 import { cn } from "@/lib/utils"
+import { useCart } from "@/contexts/cart-context"
+import { useToast } from "@/hooks/use-toast"
 
 type ProductDetailProps = {
   product: Product
@@ -15,6 +17,8 @@ export function ProductDetail({ product }: ProductDetailProps) {
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState<"description" | "ingredients" | "howToUse">("description")
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const { addToCart } = useCart()
+  const { toast } = useToast()
 
   const incrementQuantity = () => setQuantity((prev) => Math.min(prev + 1, 10))
   const decrementQuantity = () => setQuantity((prev) => Math.max(prev - 1, 1))
@@ -129,7 +133,25 @@ export function ProductDetail({ product }: ProductDetailProps) {
                 </button>
               </div>
 
-              {/* Buy Now / Add to Cart */}
+              {/* Add to Cart */}
+              <Button
+                variant="outline"
+                className="flex-1 h-12 rounded-full bg-transparent border-2 border-primary text-primary hover:bg-primary/10"
+                disabled={!product.inStock}
+                onClick={() => {
+                  if (!product.inStock) return
+                  addToCart(product, quantity)
+                  toast({
+                    title: "Added to cart",
+                    description: `${quantity}x ${product.name} added to your cart`,
+                  })
+                }}
+              >
+                <ShoppingBag className="mr-2 h-5 w-5" />
+                {product.inStock ? "Add to Cart" : "Out of Stock"}
+              </Button>
+
+              {/* Buy Now */}
               <Button
                 className="flex-1 h-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full"
                 disabled={!product.inStock}
@@ -178,8 +200,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
                   }
                 }}
               >
-                <ShoppingBag className="mr-2 h-5 w-5" />
-                {product.inStock ? "Buy Now" : "Out of Stock"}
+                Buy Now
               </Button>
 
               {/* Wishlist */}
