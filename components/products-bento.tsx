@@ -1,56 +1,69 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Star } from "lucide-react"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 
-const products = [
-  {
-    id: 1,
-    name: "Luxe Nail Serum",
-    price: "$48",
-    rating: 4.9,
-    image: "/luxury-nail-serum-bottle-minimalist-gold-packaging.jpg",
-    featured: true,
-  },
-  {
-    id: 2,
-    name: "Silk Hair Elixir",
-    price: "$72",
-    rating: 4.8,
-    image: "/premium-hair-oil-serum-elegant-dark-bottle.jpg",
-    featured: false,
-  },
-  {
-    id: 3,
-    name: "Rose Cuticle Oil",
-    price: "$32",
-    rating: 5.0,
-    image: "/cuticle-oil-dropper-bottle-rose-gold-minimalist.jpg",
-    featured: false,
-  },
-  {
-    id: 4,
-    name: "Velvet Hand Cream",
-    price: "$38",
-    rating: 4.9,
-    image: "/luxury-hand-cream-tube-elegant-packaging-cream.jpg",
-    featured: false,
-  },
-  {
-    id: 5,
-    name: "Radiance Face Mist",
-    price: "$56",
-    rating: 4.7,
-    image: "/facial-mist-spray-bottle-elegant-minimalist-gold.jpg",
-    featured: true,
-  },
-]
+interface Product {
+  _id: string
+  id?: string
+  name: string
+  price: number
+  originalPrice?: number
+  rating: number
+  reviews: number
+  image: string
+  images: string[]
+  category: string
+  featured: boolean
+}
 
 export function ProductsBento() {
   const [headerRef, headerVisible] = useScrollReveal()
+  const [products, setProducts] = useState<Product[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch("/api/products?featured=true")
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.products) {
+          // Get up to 5 featured products, or all products if less than 5
+          const featuredProducts = data.products
+            .filter((p: Product) => p.featured)
+            .slice(0, 5)
+          
+          // If we don't have 5 featured, add non-featured to fill
+          if (featuredProducts.length < 5) {
+            const nonFeatured = data.products
+              .filter((p: Product) => !p.featured)
+              .slice(0, 5 - featuredProducts.length)
+            featuredProducts.push(...nonFeatured)
+          }
+          
+          // Convert _id to id for compatibility
+          const productsWithId = featuredProducts.map((p: Product) => ({
+            ...p,
+            id: p._id || p.id,
+          }))
+          setProducts(productsWithId.slice(0, 5))
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <section className="py-24 lg:py-32 bg-muted">
@@ -75,13 +88,22 @@ export function ProductsBento() {
         </div>
 
         {/* Bento Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          {products.map((product, index) => {
-            const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
-            return (
-            <Link
-              key={product.id}
-              href={`/shop/${product.id}`}
+        {isLoading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading products...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            {products.map((product, index) => {
+              const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
+              const productId = product._id || product.id || ""
+              const displayPrice = product.originalPrice 
+                ? `$${product.price}` 
+                : `$${product.price}`
+              return (
+              <Link
+                key={productId}
+                href={`/shop/${productId}`}
               ref={cardRef}
               className={`group relative overflow-hidden rounded-2xl bg-card transition-all duration-300 hover:shadow-xl interactive-card scroll-reveal ${
                 cardVisible ? 'revealed' : ''
@@ -111,7 +133,7 @@ export function ProductsBento() {
                   {product.name}
                 </h3>
                 <p className={`text-primary font-medium mt-1 ${index === 0 ? "text-lg" : "text-sm"}`}>
-                  {product.price}
+                  {displayPrice}
                 </p>
               </div>
 
@@ -120,7 +142,8 @@ export function ProductsBento() {
             </Link>
             )
           })}
-        </div>
+          </div>
+        )}
       </div>
     </section>
   )

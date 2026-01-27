@@ -4,15 +4,59 @@ import { Footer } from "@/components/footer"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { ProductDetail } from "@/components/shop/product-detail"
 import { RelatedProducts } from "@/components/shop/related-products"
-import { products } from "@/lib/products"
 
 type ProductPageProps = {
   params: Promise<{ id: string }>
 }
 
+async function fetchProduct(id: string) {
+  try {
+    // Directly use MongoDB connection for server-side
+    const connectDB = (await import('@/lib/mongodb')).default
+    const Product = (await import('@/lib/models/Product')).default
+    
+    await connectDB()
+    const product = await Product.findById(id)
+    
+    if (product) {
+      const productObj = product.toObject ? product.toObject() : product
+      return {
+        ...productObj,
+        id: productObj._id?.toString() || productObj._id,
+      }
+    }
+    return null
+  } catch (error) {
+    console.error('Error fetching product:', error)
+    return null
+  }
+}
+
+async function fetchAllProducts() {
+  try {
+    // Directly use MongoDB connection for server-side
+    const connectDB = (await import('@/lib/mongodb')).default
+    const Product = (await import('@/lib/models/Product')).default
+    
+    await connectDB()
+    const products = await Product.find({}).sort({ createdAt: -1 })
+    
+    return products.map((product: any) => {
+      const productObj = product.toObject ? product.toObject() : product
+      return {
+        ...productObj,
+        id: productObj._id?.toString() || productObj._id,
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching products:', error)
+    return []
+  }
+}
+
 export async function generateMetadata({ params }: ProductPageProps) {
   const { id } = await params
-  const product = products.find((p) => p.id === id)
+  const product = await fetchProduct(id)
 
   if (!product) {
     return { title: "Product Not Found | Luxe Beauty & Training" }
@@ -26,13 +70,16 @@ export async function generateMetadata({ params }: ProductPageProps) {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params
-  const product = products.find((p) => p.id === id)
+  const product = await fetchProduct(id)
 
   if (!product) {
     notFound()
   }
 
-  const relatedProducts = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4)
+  const allProducts = await fetchAllProducts()
+  const relatedProducts = allProducts
+    .filter((p: any) => p.category === product.category && (p._id || p.id) !== id)
+    .slice(0, 4)
 
   return (
     <main className="min-h-screen bg-background">

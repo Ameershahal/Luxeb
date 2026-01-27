@@ -1,17 +1,65 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Star, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { products, categories, type Product } from "@/lib/products"
+import { categories } from "@/lib/products"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/contexts/cart-context"
 import { useToast } from "@/hooks/use-toast"
 
+interface Product {
+  _id: string
+  id?: string
+  name: string
+  price: number
+  originalPrice?: number
+  rating: number
+  reviews: number
+  image: string
+  images: string[]
+  category: string
+  description: string
+  benefits: string[]
+  ingredients?: string
+  howToUse?: string
+  inStock: boolean
+  featured: boolean
+}
+
 export function ShopGrid() {
   const [activeCategory, setActiveCategory] = useState("all")
   const [sortBy, setSortBy] = useState("featured")
+  const [products, setProducts] = useState<Product[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch("/api/products")
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.products) {
+          // Convert _id to id for compatibility
+          const productsWithId = data.products.map((p: Product) => ({
+            ...p,
+            id: p._id || p.id,
+          }))
+          setProducts(productsWithId)
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const filteredProducts = products
     .filter((p) => activeCategory === "all" || p.category === activeCategory)
@@ -95,9 +143,10 @@ export function ShopGrid() {
 function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart()
   const { toast } = useToast()
+  const productId = product._id || product.id || ""
 
   return (
-    <Link href={`/shop/${product.id}`} className="group">
+    <Link href={`/shop/${productId}`} className="group">
       <div className="relative overflow-hidden rounded-xl bg-card border border-border transition-all duration-300 hover:shadow-xl interactive-card">
         {/* Image */}
         <div className="relative aspect-square lg:aspect-auto lg:h-auto overflow-hidden bg-muted flex items-center justify-center">
@@ -147,7 +196,25 @@ function ProductCard({ product }: { product: Product }) {
               e.stopPropagation()
               if (product.inStock) {
                 try {
-                  addToCart(product, 1)
+                  // Convert product to cart format
+                  const cartProduct = {
+                    id: product._id || product.id || "",
+                    name: product.name,
+                    price: product.price,
+                    originalPrice: product.originalPrice,
+                    image: product.image,
+                    images: product.images,
+                    category: product.category,
+                    description: product.description,
+                    benefits: product.benefits,
+                    ingredients: product.ingredients,
+                    howToUse: product.howToUse,
+                    inStock: product.inStock,
+                    featured: product.featured,
+                    rating: product.rating,
+                    reviews: product.reviews,
+                  }
+                  addToCart(cartProduct, 1)
                   toast({
                     title: "Added to cart",
                     description: `${product.name} added to your cart`,
