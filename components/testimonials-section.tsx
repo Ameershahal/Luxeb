@@ -58,50 +58,15 @@ export function TestimonialsSection() {
 
         {/* Testimonials Grid */}
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-          {testimonials.map((testimonial, index) => {
-            const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
-            return (
-            <div
+          {testimonials.map((testimonial, index) => (
+            <TestimonialCard
               key={testimonial.id}
-              ref={cardRef}
-              className={`p-6 lg:p-8 rounded-2xl bg-card border border-border transition-all duration-300 interactive-card scroll-reveal ${
-                cardVisible ? 'revealed' : ''
-              } ${
-                index === currentIndex ? "md:scale-105 md:shadow-xl" : "md:opacity-70"
-              }`}
-              style={{ transitionDelay: `${index * 150}ms` }}
+              testimonial={testimonial}
+              index={index}
+              isActive={index === currentIndex}
               onMouseEnter={() => setCurrentIndex(index)}
-            >
-              {/* Rating */}
-              <div className="flex gap-1 mb-4">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-accent text-accent" />
-                ))}
-              </div>
-
-              {/* Quote */}
-              <p className="text-foreground/80 leading-relaxed mb-6">"{testimonial.text}"</p>
-
-              {/* Author */}
-              <div className="flex items-center gap-4">
-                <img
-                  src={testimonial.image || "/placeholder.svg"}
-                  alt={testimonial.name}
-                  className="h-12 w-12 rounded-full object-cover transition-transform duration-300 hover:scale-110 hover:ring-2 hover:ring-primary/50"
-                />
-                <div>
-                  <p className="font-medium text-foreground">{testimonial.name}</p>
-                  <p className="text-sm text-muted-foreground">{testimonial.location}</p>
-                </div>
-              </div>
-
-              {/* Service Badge */}
-              <div className="mt-4 pt-4 border-t border-border">
-                <span className="text-xs text-primary font-medium uppercase tracking-wider">{testimonial.service}</span>
-              </div>
-            </div>
-            )
-          })}
+            />
+          ))}
         </div>
 
         {/* Navigation (Mobile) */}
@@ -141,5 +106,61 @@ export function TestimonialsSection() {
         </div>
       </div>
     </section>
+  )
+}
+
+// Separate component to use hooks properly
+function TestimonialCard({ 
+  testimonial, 
+  index, 
+  isActive, 
+  onMouseEnter 
+}: { 
+  testimonial: typeof testimonials[0]
+  index: number
+  isActive: boolean
+  onMouseEnter: () => void
+}) {
+  const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
+
+  return (
+    <div
+      ref={cardRef}
+      className={`p-6 lg:p-8 rounded-2xl bg-card border border-border transition-all duration-300 interactive-card scroll-reveal ${
+        cardVisible ? 'revealed' : ''
+      } ${
+        isActive ? "md:scale-105 md:shadow-xl" : "md:opacity-70"
+      }`}
+      style={{ transitionDelay: `${index * 150}ms` }}
+      onMouseEnter={onMouseEnter}
+    >
+      {/* Rating */}
+      <div className="flex gap-1 mb-4">
+        {[...Array(testimonial.rating)].map((_, i) => (
+          <Star key={i} className="h-4 w-4 fill-accent text-accent" />
+        ))}
+      </div>
+
+      {/* Quote */}
+      <p className="text-foreground/80 leading-relaxed mb-6">"{testimonial.text}"</p>
+
+      {/* Author */}
+      <div className="flex items-center gap-4">
+        <img
+          src={testimonial.image || "/placeholder.svg"}
+          alt={testimonial.name}
+          className="h-12 w-12 rounded-full object-cover transition-transform duration-300 hover:scale-110 hover:ring-2 hover:ring-primary/50"
+        />
+        <div>
+          <p className="font-medium text-foreground">{testimonial.name}</p>
+          <p className="text-sm text-muted-foreground">{testimonial.location}</p>
+        </div>
+      </div>
+
+      {/* Service Badge */}
+      <div className="mt-4 pt-4 border-t border-border">
+        <span className="text-xs text-primary font-medium uppercase tracking-wider">{testimonial.service}</span>
+      </div>
+    </div>
   )
 }

@@ -94,57 +94,66 @@ export function ProductsBento() {
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            {products.map((product, index) => {
-              const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
-              const productId = product._id || product.id || ""
-              const displayPrice = product.originalPrice 
-                ? `$${product.price}` 
-                : `$${product.price}`
-              return (
-              <Link
-                key={productId}
-                href={`/shop/${productId}`}
-              ref={cardRef}
-              className={`group relative overflow-hidden rounded-2xl bg-card transition-all duration-300 hover:shadow-xl interactive-card scroll-reveal ${
-                cardVisible ? 'revealed' : ''
-              } ${
-                index === 0 ? "col-span-2 row-span-2" : ""
-              } ${index === 4 ? "col-span-2" : ""}`}
-              style={{ transitionDelay: `${index * 100}ms` }}
-            >
-              {/* Image */}
-              <div className={`relative ${index === 0 ? "aspect-square" : "aspect-[4/5]"} lg:aspect-auto lg:h-auto flex items-center justify-center lg:block lg:overflow-visible`}>
-                <img
-                  src={product.image || "/placeholder.svg"}
-                  alt={product.name}
-                  className="h-full w-full lg:h-auto lg:w-full lg:block lg:relative object-cover lg:object-contain transition-transform duration-500 group-hover:scale-105"
-                />
-              </div>
-
-              {/* Content */}
-              <div className="absolute inset-x-0 bottom-0 p-4 lg:p-6 bg-gradient-to-t from-card via-card/80 to-transparent">
-                <div className="flex items-center gap-1 mb-2">
-                  <Star className="h-3 w-3 fill-accent text-accent" />
-                  <span className="text-xs text-muted-foreground">{product.rating}</span>
-                </div>
-                <h3
-                  className={`font-medium text-foreground ${index === 0 ? "text-xl lg:text-2xl" : "text-sm lg:text-base"}`}
-                >
-                  {product.name}
-                </h3>
-                <p className={`text-primary font-medium mt-1 ${index === 0 ? "text-lg" : "text-sm"}`}>
-                  {displayPrice}
-                </p>
-              </div>
-
-              {/* Hover Overlay */}
-              <div className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            </Link>
-            )
-          })}
+            {products.map((product, index) => (
+              <ProductCard 
+                key={product._id || product.id || index} 
+                product={product} 
+                index={index}
+              />
+            ))}
           </div>
         )}
       </div>
     </section>
+  )
+}
+
+// Separate component to use hooks properly
+function ProductCard({ product, index }: { product: Product; index: number }) {
+  const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
+  const productId = product._id || product.id || ""
+  const displayPrice = product.originalPrice 
+    ? `£${product.price}` 
+    : `£${product.price}`
+
+  return (
+    <Link
+      href={`/shop/${productId}`}
+      ref={cardRef}
+      className={`group relative overflow-hidden rounded-2xl bg-card transition-all duration-300 hover:shadow-xl interactive-card scroll-reveal ${
+        cardVisible ? 'revealed' : ''
+      } ${
+        index === 0 ? "col-span-2 row-span-2" : ""
+      } ${index === 4 ? "col-span-2" : ""}`}
+      style={{ transitionDelay: `${index * 100}ms` }}
+    >
+      {/* Image */}
+      <div className={`relative ${index === 0 ? "aspect-square" : "aspect-[4/5]"} lg:aspect-auto lg:h-auto flex items-center justify-center lg:block lg:overflow-visible`}>
+        <img
+          src={product.image || "/placeholder.svg"}
+          alt={product.name}
+          className="h-full w-full lg:h-auto lg:w-full lg:block lg:relative object-cover lg:object-contain transition-transform duration-500 group-hover:scale-105"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="absolute inset-x-0 bottom-0 p-4 lg:p-6 bg-gradient-to-t from-card via-card/80 to-transparent">
+        <div className="flex items-center gap-1 mb-2">
+          <Star className="h-3 w-3 fill-accent text-accent" />
+          <span className="text-xs text-muted-foreground">{product.rating}</span>
+        </div>
+        <h3
+          className={`font-medium text-foreground ${index === 0 ? "text-xl lg:text-2xl" : "text-sm lg:text-base"}`}
+        >
+          {product.name}
+        </h3>
+        <p className={`text-primary font-medium mt-1 ${index === 0 ? "text-lg" : "text-sm"}`}>
+          {displayPrice}
+        </p>
+      </div>
+
+      {/* Hover Overlay */}
+      <div className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+    </Link>
   )
 }
