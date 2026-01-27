@@ -16,6 +16,7 @@ export type BookingData = {
     category: string
     duration: number
     price: number
+    description: string
   } | null
   stylist: {
     id: string
