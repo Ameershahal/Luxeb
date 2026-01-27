@@ -250,39 +250,75 @@ export default function AdminProducts() {
           <h1 className="font-serif text-4xl font-medium text-foreground mb-2">Products</h1>
           <p className="text-muted-foreground">Manage your product catalog</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open)
-          if (!open) {
-            setEditingProduct(null)
-            setFormData({
-              name: "",
-              price: "",
-              originalPrice: "",
-              category: "",
-              description: "",
-              image: "",
-              images: "",
-              inStock: true,
-              featured: false,
-              rating: "0",
-              reviews: "0",
-            })
-          }
-        }}>
-          <DialogTrigger asChild>
-            <Button 
-              onClick={(e) => {
-                e.preventDefault()
-                handleOpenDialog()
+        <div className="flex gap-2">
+          {products.length === 0 && (
+            <Button
+              onClick={async () => {
+                try {
+                  const response = await fetch("/api/admin/seed-products", {
+                    method: "POST",
+                  })
+                  const result = await response.json()
+                  if (result.success) {
+                    toast({
+                      title: "Success",
+                      description: `Seeded ${result.count} products from hardcoded data`,
+                    })
+                    fetchProducts()
+                  } else {
+                    toast({
+                      title: "Info",
+                      description: result.message || "Products already exist or failed to seed",
+                    })
+                  }
+                } catch (error) {
+                  console.error("Error seeding products:", error)
+                  toast({
+                    title: "Error",
+                    description: "Failed to seed products",
+                    variant: "destructive",
+                  })
+                }
               }}
+              variant="outline"
               type="button"
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Product
+              Seed Products
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          )}
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open)
+            if (!open) {
+              setEditingProduct(null)
+              setFormData({
+                name: "",
+                price: "",
+                originalPrice: "",
+                category: "",
+                description: "",
+                image: "",
+                images: "",
+                inStock: true,
+                featured: false,
+                rating: "0",
+                reviews: "0",
+              })
+            }
+          }}>
+            <DialogTrigger asChild>
+              <Button 
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleOpenDialog()
+                }}
+                type="button"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Product
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
               <DialogDescription>
@@ -406,6 +442,7 @@ export default function AdminProducts() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Search */}
