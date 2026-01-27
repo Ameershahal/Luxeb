@@ -90,9 +90,9 @@ export function ProductDetail({ product }: ProductDetailProps) {
 
             {/* Price */}
             <div className="flex items-baseline gap-3 mb-6">
-              <span className="font-serif text-3xl font-medium text-primary">${product.price}</span>
+              <span className="font-serif text-3xl font-medium text-primary">£{product.price}</span>
               {product.originalPrice && (
-                <span className="text-lg text-muted-foreground line-through">${product.originalPrice}</span>
+                <span className="text-lg text-muted-foreground line-through">£{product.originalPrice}</span>
               )}
             </div>
 
@@ -129,13 +129,57 @@ export function ProductDetail({ product }: ProductDetailProps) {
                 </button>
               </div>
 
-              {/* Add to Cart */}
+              {/* Buy Now / Add to Cart */}
               <Button
                 className="flex-1 h-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full"
                 disabled={!product.inStock}
+                onClick={async () => {
+                  if (!product.inStock) return
+                  
+                  try {
+                    const response = await fetch('/api/create-checkout-session', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        items: [
+                          {
+                            name: product.name,
+                            description: product.description,
+                            price: product.price,
+                            quantity: quantity,
+                            image: product.images[0],
+                          },
+                        ],
+                        type: 'product',
+                        metadata: {
+                          type: 'product',
+                          productId: product.id,
+                          productName: product.name,
+                          quantity: quantity.toString(),
+                        },
+                      }),
+                    })
+
+                    const data = await response.json()
+
+                    if (!response.ok) {
+                      throw new Error(data.error || 'Failed to create checkout session')
+                    }
+
+                    // Redirect to Stripe Checkout
+                    if (data.url) {
+                      window.location.href = data.url
+                    }
+                  } catch (error) {
+                    console.error('Checkout error:', error)
+                    alert('Failed to process checkout. Please try again.')
+                  }
+                }}
               >
                 <ShoppingBag className="mr-2 h-5 w-5" />
-                {product.inStock ? "Add to Cart" : "Out of Stock"}
+                {product.inStock ? "Buy Now" : "Out of Stock"}
               </Button>
 
               {/* Wishlist */}

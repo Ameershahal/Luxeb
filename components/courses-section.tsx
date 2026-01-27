@@ -133,9 +133,55 @@ export function CoursesSection() {
                 {/* Price & CTA */}
                 <div className="flex items-center justify-between pt-4 border-t border-border">
                   <div>
-                    <span className="text-2xl font-serif font-medium text-primary">${course.price}</span>
+                    <span className="text-2xl font-serif font-medium text-primary">£{course.price}</span>
                   </div>
-                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 group/btn transition-all duration-300 hover:scale-105 ripple-effect">
+                  <Button 
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 group/btn transition-all duration-300 hover:scale-105 ripple-effect"
+                    onClick={async (e) => {
+                      e.preventDefault()
+                      try {
+                        const response = await fetch('/api/create-checkout-session', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            items: [
+                              {
+                                name: course.title,
+                                description: course.description,
+                                price: course.price,
+                                quantity: 1,
+                                image: course.image,
+                              },
+                            ],
+                            type: 'course',
+                            metadata: {
+                              type: 'course',
+                              courseId: course.id,
+                              courseName: course.title,
+                              duration: course.duration,
+                              location: course.location,
+                            },
+                          }),
+                        })
+
+                        const data = await response.json()
+
+                        if (!response.ok) {
+                          throw new Error(data.error || 'Failed to create checkout session')
+                        }
+
+                        // Redirect to Stripe Checkout
+                        if (data.url) {
+                          window.location.href = data.url
+                        }
+                      } catch (error) {
+                        console.error('Checkout error:', error)
+                        alert('Failed to process enrollment. Please try again.')
+                      }
+                    }}
+                  >
                     Enroll Now
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                   </Button>

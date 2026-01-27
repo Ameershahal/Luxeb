@@ -14,13 +14,67 @@ type BookingConfirmationProps = {
 export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConfirmationProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isConfirmed, setIsConfirmed] = useState(false)
+  const [error, setError] = useState("")
 
   const handleConfirmBooking = async () => {
+    if (!bookingData.service) {
+      setError("Please select a service")
+      return
+    }
+
     setIsSubmitting(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsSubmitting(false)
-    setIsConfirmed(true)
+    setError("")
+
+    try {
+      // Create Stripe checkout session
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: [
+            {
+              name: bookingData.service.name,
+              description: `${bookingData.service.category} - ${bookingData.service.duration} min`,
+              price: bookingData.service.price,
+              quantity: 1,
+            },
+          ],
+          type: 'booking',
+          metadata: {
+            type: 'booking',
+            serviceId: bookingData.service.id,
+            serviceName: bookingData.service.name,
+            stylistId: bookingData.stylist?.id || '',
+            stylistName: bookingData.stylist?.name || '',
+            date: bookingData.dateTime.date?.toISOString() || '',
+            time: bookingData.dateTime.time || '',
+            clientName: `${bookingData.client.firstName} ${bookingData.client.lastName}`,
+            email: bookingData.client.email,
+            phone: bookingData.client.phone,
+            notes: bookingData.client.notes || '',
+          },
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session')
+      }
+
+      // Redirect to Stripe Checkout
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error('No checkout URL received')
+      }
+    } catch (err: any) {
+      console.error('Payment error:', err)
+      setError(err.message || 'Failed to process payment. Please try again.')
+      setIsSubmitting(false)
+    }
   }
 
   if (isConfirmed) {
@@ -31,7 +85,7 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
         </div>
         <h2 className="font-serif text-3xl font-medium text-foreground mb-4">Booking Confirmed!</h2>
         <p className="text-muted-foreground max-w-md mx-auto mb-8">
-          We've sent a confirmation email to {bookingData.client.email}. We look forward to seeing you at Maison Rouge.
+          We've sent a confirmation email to {bookingData.client.email}. We look forward to seeing you at Luxe Beauty & Training.
         </p>
         <div className="bg-card rounded-xl border border-border p-6 max-w-md mx-auto">
           <p className="text-sm text-muted-foreground mb-2">Confirmation Number</p>
@@ -71,7 +125,7 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
                   <p className="text-sm text-muted-foreground">Service</p>
                   <p className="font-medium text-foreground">{bookingData.service?.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {bookingData.service?.duration} min • ${bookingData.service?.price}
+                    {bookingData.service?.duration} min • £{bookingData.service?.price}
                   </p>
                 </div>
               </div>
@@ -159,9 +213,9 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
         <div className="mt-6 bg-card rounded-xl border border-border p-6">
           <div className="flex items-center justify-between">
             <span className="font-medium text-foreground">Total</span>
-            <span className="font-serif text-2xl font-medium text-primary">${bookingData.service?.price}</span>
+            <span className="font-serif text-2xl font-medium text-primary">£{bookingData.service?.price}</span>
           </div>
-          <p className="text-sm text-muted-foreground mt-2">Payment will be collected at the salon</p>
+          <p className="text-sm text-muted-foreground mt-2">Secure payment via Stripe</p>
         </div>
 
         {/* Policies */}
