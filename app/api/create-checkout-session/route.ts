@@ -1,33 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, formatAmountForStripe } from '@/lib/stripe'
-import { rateLimit, getClientIP } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
-  // Rate limiting: 5 requests per minute per IP
-  const clientIP = getClientIP(request)
-  const limitResult = rateLimit(clientIP, {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 5,
-  })
-
-  if (!limitResult.success) {
-    return NextResponse.json(
-      {
-        error: 'Too many requests. Please try again later.',
-        retryAfter: limitResult.retryAfter,
-      },
-      {
-        status: 429,
-        headers: {
-          'Retry-After': limitResult.retryAfter?.toString() || '60',
-          'X-RateLimit-Limit': '5',
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': new Date(limitResult.resetTime).toISOString(),
-        },
-      }
-    )
-  }
-
   try {
     const body = await request.json()
     const { items, type, metadata } = body
@@ -111,16 +85,7 @@ export async function POST(request: NextRequest) {
 
     const session = await stripe.checkout.sessions.create(sessionConfig)
 
-    return NextResponse.json(
-      { sessionId: session.id, url: session.url },
-      {
-        headers: {
-          'X-RateLimit-Limit': '5',
-          'X-RateLimit-Remaining': limitResult.remaining.toString(),
-          'X-RateLimit-Reset': new Date(limitResult.resetTime).toISOString(),
-        },
-      }
-    )
+    return NextResponse.json({ sessionId: session.id, url: session.url })
   } catch (error: any) {
     console.error('Error creating checkout session:', error)
     return NextResponse.json(

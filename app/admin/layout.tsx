@@ -29,72 +29,34 @@ const navItems = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null) // null = checking, true = authenticated, false = not authenticated
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
-
-  // Handle client-side mounting
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
 
   useEffect(() => {
     // Skip authentication check for login page
     if (pathname === "/admin/login") {
-      setIsAuthenticated(null) // Don't check auth for login page
-      return
-    }
-
-    // Only check authentication after component mounts (client-side)
-    if (!isMounted) {
       return
     }
 
     // Check authentication only for non-login pages
-    try {
-      const auth = localStorage.getItem("adminAuth")
-      if (!auth || auth !== "true") {
-        setIsAuthenticated(false)
-        router.push("/admin/login")
-      } else {
-        setIsAuthenticated(true)
-      }
-    } catch (error) {
-      console.error("Error checking authentication:", error)
-      setIsAuthenticated(false)
+    const auth = localStorage.getItem("adminAuth")
+    if (!auth) {
       router.push("/admin/login")
+    } else {
+      setIsAuthenticated(true)
     }
-  }, [router, pathname, isMounted])
+  }, [router, pathname])
 
   const handleLogout = () => {
-    try {
-      localStorage.removeItem("adminAuth")
-      setIsAuthenticated(false)
-      router.push("/admin/login")
-    } catch (error) {
-      console.error("Error logging out:", error)
-      router.push("/admin/login")
-    }
+    localStorage.removeItem("adminAuth")
+    router.push("/admin/login")
   }
 
-  // Skip layout for login page
+  // Skip layout for login page - must be after all hooks
   if (pathname === "/admin/login") {
     return <>{children}</>
   }
 
-  // Show loading state while checking authentication
-  if (!isMounted || isAuthenticated === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Show nothing if not authenticated (will redirect)
   if (!isAuthenticated) {
     return null
   }

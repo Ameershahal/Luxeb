@@ -18,22 +18,13 @@ export default function AdminLogin() {
     setError("")
     setLoading(true)
 
-    try {
-      // Simple authentication (in production, use proper auth)
-      if (email === "admin@luxebeauty.com" && password === "admin123") {
-        // Store auth token (in production, use secure tokens)
-        if (typeof window !== "undefined") {
-          localStorage.setItem("adminAuth", "true")
-          router.push("/admin/dashboard")
-          router.refresh() // Refresh to trigger auth check
-        }
-      } else {
-        setError("Invalid credentials")
-        setLoading(false)
-      }
-    } catch (err) {
-      console.error("Login error:", err)
-      setError("An error occurred. Please try again.")
+    // Simple authentication (in production, use proper auth)
+    if (email === "admin@luxebeauty.com" && password === "admin123") {
+      // Store auth token (in production, use secure tokens)
+      localStorage.setItem("adminAuth", "true")
+      router.push("/admin/dashboard")
+    } else {
+      setError("Invalid credentials")
       setLoading(false)
     }
   }

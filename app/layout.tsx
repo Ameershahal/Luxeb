@@ -2,7 +2,7 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { DM_Sans, Playfair_Display } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
-import { Providers } from "@/components/providers"
+import { CartProvider } from "@/contexts/cart-context"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
@@ -38,9 +38,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${dmSans.variable} ${playfair.variable} font-sans antialiased`}>
-        <Providers>
+        <CartProvider>
           {children}
-        </Providers>
+        </CartProvider>
         <Toaster />
         <Analytics />
       </body>
