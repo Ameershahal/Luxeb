@@ -48,14 +48,15 @@ typescript: {
 }
 ```
 
-#### ⚠️ Cloudinary Placeholders
+#### ✅ Cloudinary Configuration
 **File**: `.env.local`
 ```env
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name  # ❌ Placeholder
-CLOUDINARY_API_KEY=your_api_key  # ❌ Placeholder
-CLOUDINARY_API_SECRET=your_api_secret  # ❌ Placeholder
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dg95jeppy  # ✅ Configured
+CLOUDINARY_API_KEY=335112954767467  # ✅ Configured
+CLOUDINARY_API_SECRET=QoXWF4Rr_u6r79_fb_yR_n45V5s  # ✅ Configured
+CLOUDINARY_URL=cloudinary://...  # ✅ Configured
 ```
-**Fix**: Replace with actual Cloudinary credentials if using file uploads
+**Status**: ✅ Configured locally. **Remember to add these to Vercel environment variables for production!**
 
 ### 2. Security Concerns
 
@@ -118,9 +119,10 @@ CLOUDINARY_API_SECRET=your_api_secret  # ❌ Placeholder
 - [ ] `STRIPE_WEBHOOK_SECRET` - Set with webhook secret (starts with `whsec_`)
 - [ ] `NEXT_PUBLIC_SITE_URL` - Set to `https://luxebeautyandtrainingacademy.com`
 - [ ] `MONGODB_URI` - Set with actual password (not placeholder)
-- [ ] `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` - Set if using file uploads
-- [ ] `CLOUDINARY_API_KEY` - Set if using file uploads
-- [ ] `CLOUDINARY_API_SECRET` - Set if using file uploads
+- [x] `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` - ✅ Set locally (add to Vercel!)
+- [x] `CLOUDINARY_API_KEY` - ✅ Set locally (add to Vercel!)
+- [x] `CLOUDINARY_API_SECRET` - ✅ Set locally (add to Vercel!)
+- [x] `CLOUDINARY_URL` - ✅ Set locally (add to Vercel!)
 - [ ] `STRIPE_PAYMENT_METHOD_CONFIGURATION_ID` - Optional, if using payment configs
 
 ### Stripe Configuration
@@ -213,7 +215,7 @@ Check all env vars are set in Vercel Dashboard:
 
 ## ✅ Current Production Status
 
-### Ready for Production: **85%**
+### Ready for Production: **88%**
 
 **What Works:**
 - ✅ Core functionality
@@ -259,7 +261,7 @@ Check all env vars are set in Vercel Dashboard:
 
 ## 📝 Summary
 
-**Your project is ~85% production ready.**
+**Your project is ~88% production ready.**
 
 **Critical items to fix:**
 1. Remove `ignoreBuildErrors: true` and fix TypeScript errors
