@@ -22,37 +22,59 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
+  const [isMounted, setIsMounted] = useState(false)
 
-  // Load cart from localStorage on mount
+  // Ensure we're on the client side before accessing localStorage
   useEffect(() => {
-    const savedCart = localStorage.getItem('luxe-beauty-cart')
-    if (savedCart) {
-      try {
-        setCartItems(JSON.parse(savedCart))
-      } catch (error) {
-        console.error('Error loading cart from localStorage:', error)
+    setIsMounted(true)
+    
+    // Load cart from localStorage on mount
+    try {
+      const savedCart = localStorage.getItem('luxe-beauty-cart')
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart)
+        if (Array.isArray(parsed)) {
+          setCartItems(parsed)
+        }
       }
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error)
     }
   }, [])
 
-  // Save cart to localStorage whenever it changes
+  // Save cart to localStorage whenever it changes (only on client)
   useEffect(() => {
-    localStorage.setItem('luxe-beauty-cart', JSON.stringify(cartItems))
-  }, [cartItems])
+    if (isMounted) {
+      try {
+        localStorage.setItem('luxe-beauty-cart', JSON.stringify(cartItems))
+      } catch (error) {
+        console.error('Error saving cart to localStorage:', error)
+      }
+    }
+  }, [cartItems, isMounted])
 
   const addToCart = (product: Product, quantity: number = 1) => {
+    if (!isMounted) {
+      console.warn('Cart not mounted yet, cannot add items')
+      return
+    }
+
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.product.id === product.id)
 
       if (existingItem) {
-        return prevItems.map((item) =>
+        const updated = prevItems.map((item) =>
           item.product.id === product.id
             ? { ...item, quantity: item.quantity + quantity }
             : item
         )
+        console.log('Cart updated (existing item):', updated)
+        return updated
       }
 
-      return [...prevItems, { product, quantity }]
+      const updated = [...prevItems, { product, quantity }]
+      console.log('Cart updated (new item):', updated)
+      return updated
     })
   }
 

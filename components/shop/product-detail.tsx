@@ -138,13 +138,30 @@ export function ProductDetail({ product }: ProductDetailProps) {
                 variant="outline"
                 className="flex-1 h-12 rounded-full bg-transparent border-2 border-primary text-primary hover:bg-primary/10"
                 disabled={!product.inStock}
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
                   if (!product.inStock) return
-                  addToCart(product, quantity)
-                  toast({
-                    title: "Added to cart",
-                    description: `${quantity}x ${product.name} added to your cart`,
-                  })
+                  
+                  try {
+                    addToCart(product, quantity)
+                    toast({
+                      title: "Added to cart",
+                      description: `${quantity}x ${product.name} added to your cart`,
+                    })
+                    // Force a small delay to ensure state updates
+                    setTimeout(() => {
+                      // Trigger a custom event to update navbar
+                      window.dispatchEvent(new Event('cartUpdated'))
+                    }, 100)
+                  } catch (error) {
+                    console.error('Error adding to cart:', error)
+                    toast({
+                      title: "Error",
+                      description: "Failed to add item to cart. Please try again.",
+                      variant: "destructive",
+                    })
+                  }
                 }}
               >
                 <ShoppingBag className="mr-2 h-5 w-5" />

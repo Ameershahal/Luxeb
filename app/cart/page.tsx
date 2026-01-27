@@ -12,8 +12,17 @@ import Image from "next/image"
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, getTotalPrice, getTotalItems, clearCart } = useCart()
 
+  const [isProcessing, setIsProcessing] = useState(false)
+
   const handleCheckout = async () => {
-    if (cartItems.length === 0) return
+    if (cartItems.length === 0) {
+      alert('Your cart is empty')
+      return
+    }
+
+    if (isProcessing) return
+
+    setIsProcessing(true)
 
     try {
       const response = await fetch('/api/create-checkout-session', {
@@ -46,10 +55,13 @@ export default function CartPage() {
       // Redirect to Stripe Checkout
       if (data.url) {
         window.location.href = data.url
+      } else {
+        throw new Error('No checkout URL received from server')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Checkout error:', error)
-      alert('Failed to process checkout. Please try again.')
+      alert(`Failed to process checkout: ${error.message || 'Please try again.'}`)
+      setIsProcessing(false)
     }
   }
 
@@ -170,10 +182,20 @@ export default function CartPage() {
 
                   <Button
                     onClick={handleCheckout}
-                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-12 mb-4"
+                    disabled={isProcessing || cartItems.length === 0}
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-12 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Proceed to Checkout
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    {isProcessing ? (
+                      <>
+                        Processing...
+                        <span className="ml-2 animate-spin">⏳</span>
+                      </>
+                    ) : (
+                      <>
+                        Proceed to Checkout
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
                   </Button>
 
                   <Link href="/shop">

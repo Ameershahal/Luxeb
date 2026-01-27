@@ -146,11 +146,25 @@ function ProductCard({ product }: { product: Product }) {
               e.preventDefault()
               e.stopPropagation()
               if (product.inStock) {
-                addToCart(product, 1)
-                toast({
-                  title: "Added to cart",
-                  description: `${product.name} added to your cart`,
-                })
+                try {
+                  addToCart(product, 1)
+                  toast({
+                    title: "Added to cart",
+                    description: `${product.name} added to your cart`,
+                  })
+                  // Force a small delay to ensure state updates
+                  setTimeout(() => {
+                    // Trigger a custom event to update navbar
+                    window.dispatchEvent(new Event('cartUpdated'))
+                  }, 100)
+                } catch (error) {
+                  console.error('Error adding to cart:', error)
+                  toast({
+                    title: "Error",
+                    description: "Failed to add item to cart. Please try again.",
+                    variant: "destructive",
+                  })
+                }
               }
             }}
             disabled={!product.inStock}

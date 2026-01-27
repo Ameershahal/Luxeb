@@ -21,6 +21,7 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { getTotalItems } = useCart()
+  const [cartCount, setCartCount] = useState(0)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,6 +30,20 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Update cart count when it changes
+  useEffect(() => {
+    setCartCount(getTotalItems())
+  }, [getTotalItems])
+
+  // Listen for cart update events
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      setCartCount(getTotalItems())
+    }
+    window.addEventListener('cartUpdated', handleCartUpdate)
+    return () => window.removeEventListener('cartUpdated', handleCartUpdate)
+  }, [getTotalItems])
 
   return (
     <header
@@ -68,9 +83,9 @@ export function Navbar() {
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative hover:scale-110 transition-transform" aria-label="Shopping cart">
                 <ShoppingBag className="h-5 w-5" />
-                {getTotalItems() > 0 && (
+                {cartCount > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground animate-pulse">
-                    {getTotalItems()}
+                    {cartCount}
                   </span>
                 )}
               </Button>
