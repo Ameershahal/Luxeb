@@ -7,7 +7,7 @@ type CartItem = {
   product: Product
   quantity: number
 }
-
+ 
 type CartContextType = {
   cartItems: CartItem[]
   addToCart: (product: Product, quantity?: number) => void
