@@ -37,19 +37,10 @@ export function ProductsBento() {
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.products) {
-          // Get up to 5 featured products, or all products if less than 5
-          const featuredProducts = data.products
-            .filter((p: Product) => p.featured)
-            .slice(0, 5)
-          
-          // If we don't have 5 featured, add non-featured to fill
-          if (featuredProducts.length < 5) {
-            const nonFeatured = data.products
-              .filter((p: Product) => !p.featured)
-              .slice(0, 5 - featuredProducts.length)
-            featuredProducts.push(...nonFeatured)
-          }
-          
+          // API already returns only featured products when featured=true,
+          // so we simply display those (up to 5) in Beauty Essentials.
+          const featuredProducts = data.products.slice(0, 5)
+
           // Convert _id to id for compatibility
           const productsWithId = featuredProducts.map((p: Product) => ({
             ...p,
