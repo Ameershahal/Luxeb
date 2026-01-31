@@ -7,7 +7,7 @@ export function ScrollProgress() {
 
   useEffect(() => {
     const updateScrollProgress = () => {
-      const scrollPx = document.documentElement.scrollTop
+      const scrollPx = document.documentElement.scrollTop 
       const winHeightPx =
         document.documentElement.scrollHeight - document.documentElement.clientHeight
       const scrolled = (scrollPx / winHeightPx) * 100
