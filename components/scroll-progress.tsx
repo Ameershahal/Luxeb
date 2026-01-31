@@ -25,5 +25,5 @@ export function ScrollProgress() {
         style={{ width: `${scrollProgress}%` }}
       />
     </div>
-  )
+  ) 
 }
