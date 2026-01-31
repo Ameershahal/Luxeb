@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     await connectDB()
 
     const body = await request.json()
-    const booking = await Booking.create(body)
+    const booking = await Booking.create(body) 
 
     return NextResponse.json({ booking }, { status: 201 })
   } catch (error: any) {
