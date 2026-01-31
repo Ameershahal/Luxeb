@@ -59,7 +59,16 @@ interface Product {
   featured: boolean
 }
 
+interface ProductCategory {
+  _id: string
+  name: string
+  slug: string
+  description?: string
+  isActive: boolean
+}
+
 export default function AdminProducts() {
+  const [activeTab, setActiveTab] = useState<"products" | "categories">("products")
   const [products, setProducts] = useState<Product[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -68,6 +77,16 @@ export default function AdminProducts() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  
+  // Category management state
+  const [categories, setCategories] = useState<ProductCategory[]>([])
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false)
+  const [isDeleteCategoryDialogOpen, setIsDeleteCategoryDialogOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<ProductCategory | null>(null)
+  const [isCategoryLoading, setIsCategoryLoading] = useState(true)
+  const [isCategorySubmitting, setIsCategorySubmitting] = useState(false)
+  const [isSeedingCategories, setIsSeedingCategories] = useState(false)
+  
   const { toast } = useToast()
 
   // Form state
@@ -77,7 +96,7 @@ export default function AdminProducts() {
     originalPrice: "",
     image: "",
     images: [] as string[],
-    category: "nails",
+    category: "",
     description: "",
     benefits: "",
     ingredients: "",
@@ -86,10 +105,36 @@ export default function AdminProducts() {
     featured: false,
   })
 
+  // Category form state
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: "",
+    description: "",
+    isActive: true,
+  })
+
   // Fetch products
   useEffect(() => {
-    fetchProducts()
-  }, [])
+    if (activeTab === "products") {
+      fetchProducts()
+    }
+  }, [activeTab])
+
+  // Fetch categories
+  useEffect(() => {
+    if (activeTab === "categories") {
+      fetchCategories()
+    } else {
+      // Also fetch categories when on products tab to populate dropdown
+      fetchCategories()
+    }
+  }, [activeTab])
+
+  // Refresh categories when product dialog opens
+  useEffect(() => {
+    if (isDialogOpen) {
+      fetchCategories()
+    }
+  }, [isDialogOpen])
 
   const fetchProducts = async () => {
     try {
@@ -184,15 +229,208 @@ export default function AdminProducts() {
     }
   }
 
-  const handleOpenAddDialog = () => {
+  // Category management functions
+  const fetchCategories = async (): Promise<ProductCategory[]> => {
+    try {
+      setIsCategoryLoading(true)
+      const response = await fetch("/api/admin/product-categories")
+      const data = await response.json()
+      
+      if (data.success) {
+        const fetchedCategories = data.categories || []
+        setCategories(fetchedCategories)
+        // Set default category if none selected and categories exist
+        if (!formData.category && fetchedCategories.length > 0) {
+          const firstActiveCategory = fetchedCategories.find((cat: ProductCategory) => cat.isActive)
+          if (firstActiveCategory) {
+            setFormData(prev => ({ ...prev, category: firstActiveCategory.slug || firstActiveCategory.name.toLowerCase() }))
+          }
+        }
+        return fetchedCategories
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch categories",
+          variant: "destructive",
+        })
+        return []
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch categories",
+        variant: "destructive",
+      })
+      return []
+    } finally {
+      setIsCategoryLoading(false)
+    }
+  }
+
+  const handleCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsCategorySubmitting(true)
+
+    try {
+      const isUpdate = selectedCategory && selectedCategory._id
+      
+      if (isUpdate && !selectedCategory._id) {
+        toast({
+          title: "Error",
+          description: "Category ID is missing. Please try again.",
+          variant: "destructive",
+        })
+        setIsCategorySubmitting(false)
+        return
+      }
+
+      const url = isUpdate
+        ? `/api/admin/product-categories/${selectedCategory._id}`
+        : "/api/admin/product-categories"
+      
+      const method = isUpdate ? "PUT" : "POST"
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(categoryFormData),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast({
+          title: isUpdate ? "Category updated" : "Category created",
+          description: `Category ${isUpdate ? "updated" : "created"} successfully`,
+        })
+        setIsCategoryDialogOpen(false)
+        resetCategoryForm()
+        setSelectedCategory(null)
+        fetchCategories()
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || `Failed to ${isUpdate ? "update" : "create"} category`,
+          variant: "destructive",
+        })
+      }
+    } catch (error: any) {
+      console.error("Error saving category:", error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save category",
+        variant: "destructive",
+      })
+    } finally {
+      setIsCategorySubmitting(false)
+    }
+  }
+
+  const handleDeleteCategory = async () => {
+    if (!selectedCategory) return
+
+    try {
+      const response = await fetch(`/api/admin/product-categories/${selectedCategory._id}`, {
+        method: "DELETE",
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast({
+          title: "Category deleted",
+          description: "Category deleted successfully",
+        })
+        setIsDeleteCategoryDialogOpen(false)
+        setSelectedCategory(null)
+        fetchCategories()
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to delete category",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error deleting category:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete category",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const openCategoryDialog = (category?: ProductCategory) => {
+    if (category) {
+      setSelectedCategory(category)
+      setCategoryFormData({
+        name: category.name,
+        description: category.description || "",
+        isActive: category.isActive,
+      })
+    } else {
+      setSelectedCategory(null)
+      resetCategoryForm()
+    }
+    setIsCategoryDialogOpen(true)
+  }
+
+  const resetCategoryForm = () => {
+    setCategoryFormData({
+      name: "",
+      description: "",
+      isActive: true,
+    })
+  }
+
+  const handleSeedCategories = async () => {
+    setIsSeedingCategories(true)
+    try {
+      const response = await fetch("/api/admin/seed-product-categories", {
+        method: "POST",
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast({
+          title: "Categories Added",
+          description: `Created ${data.created} categories, skipped ${data.skipped} existing ones`,
+        })
+        fetchCategories()
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to seed categories",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error seeding categories:", error)
+      toast({
+        title: "Error",
+        description: "Failed to seed categories",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSeedingCategories(false)
+    }
+  }
+
+  const handleOpenAddDialog = async () => {
+    // Fetch latest categories before opening dialog
+    const latestCategories = await fetchCategories()
     setSelectedProduct(null)
+    const firstCategory = latestCategories.find(cat => cat.isActive)
     setFormData({
       name: "",
       price: "",
       originalPrice: "",
       image: "",
       images: [],
-      category: "nails",
+      category: firstCategory ? (firstCategory.slug || firstCategory.name.toLowerCase()) : "",
       description: "",
       benefits: "",
       ingredients: "",
@@ -395,29 +633,72 @@ export default function AdminProducts() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="font-serif text-4xl font-medium text-foreground mb-2">Products</h1>
-          <p className="text-muted-foreground">Manage your product catalog</p>
+          <p className="text-muted-foreground">Manage your product catalog and categories</p>
         </div>
-        <Button
-          onClick={handleOpenAddDialog}
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
+        {activeTab === "products" && (
+          <Button
+            onClick={handleOpenAddDialog}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Product
+          </Button>
+        )}
+        {activeTab === "categories" && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleSeedCategories}
+              disabled={isSeedingCategories}
+            >
+              {isSeedingCategories ? "Adding..." : "Add Default Categories"}
+            </Button>
+            <Button onClick={() => openCategoryDialog()}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add New Category
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-border">
+        <button
+          onClick={() => setActiveTab("products")}
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+            activeTab === "products"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
         >
-          <Plus className="mr-2 h-4 w-4" />
-          Add Product
-        </Button>
+          Products
+        </button>
+        <button
+          onClick={() => setActiveTab("categories")}
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+            activeTab === "categories"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Categories
+        </button>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search products..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
-      </div>
+      {activeTab === "products" && (
+        <>
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
 
-      {/* Products Table */}
+          {/* Products Table */}
       {isLoading ? (
         <div className="text-center py-12 text-muted-foreground">Loading products...</div>
       ) : (
@@ -486,6 +767,108 @@ export default function AdminProducts() {
           </Table>
         </div>
       )}
+        </>
+      )}
+
+      {activeTab === "categories" && (
+        <>
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search categories..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Categories Table */}
+          {isCategoryLoading ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Loading categories...</p>
+            </div>
+          ) : (
+            <div className="border border-border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Category Name</TableHead>
+                    <TableHead>Slug</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {categories.filter((category) =>
+                    category.name.toLowerCase().includes(searchQuery.toLowerCase())
+                  ).length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-12">
+                        <p className="text-muted-foreground mb-4">No categories found</p>
+                        <Button onClick={() => openCategoryDialog()}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add First Category
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    categories
+                      .filter((category) =>
+                        category.name.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                      .map((category) => (
+                        <TableRow key={category._id}>
+                          <TableCell className="font-medium">{category.name}</TableCell>
+                          <TableCell className="text-muted-foreground font-mono text-sm">
+                            {category.slug}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {category.description || "-"}
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={`text-xs px-2 py-1 rounded-full ${
+                                category.isActive
+                                  ? "bg-primary/10 text-primary"
+                                  : "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              {category.isActive ? "Active" : "Inactive"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openCategoryDialog(category)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive"
+                                onClick={() => {
+                                  setSelectedCategory(category)
+                                  setIsDeleteCategoryDialogOpen(true)
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -521,14 +904,26 @@ export default function AdminProducts() {
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  disabled={isCategoryLoading || categories.length === 0}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={isCategoryLoading ? "Loading categories..." : "Select category"} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="nails">Nails</SelectItem>
-                    <SelectItem value="hair">Hair</SelectItem>
-                    <SelectItem value="beauty">Beauty</SelectItem>
+                    {categories.length === 0 ? (
+                      <SelectItem value="" disabled>No categories available</SelectItem>
+                    ) : (
+                      categories
+                        .filter(cat => cat.isActive)
+                        .map((category) => {
+                          const categoryValue = category.slug || category.name.toLowerCase()
+                          return (
+                            <SelectItem key={category._id} value={categoryValue}>
+                              {category.name}
+                            </SelectItem>
+                          )
+                        })
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -727,6 +1122,108 @@ export default function AdminProducts() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Category Dialog */}
+      <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedCategory ? "Edit Category" : "Add New Category"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedCategory
+                ? "Update category information"
+                : "Add a new product category"}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCategorySubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="category-name">Category Name *</Label>
+              <Input
+                id="category-name"
+                value={categoryFormData.name}
+                onChange={(e) =>
+                  setCategoryFormData({ ...categoryFormData, name: e.target.value })
+                }
+                required
+                placeholder="e.g., Nails, Beauty, Hair"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category-description">Description</Label>
+              <Textarea
+                id="category-description"
+                value={categoryFormData.description}
+                onChange={(e) =>
+                  setCategoryFormData({ ...categoryFormData, description: e.target.value })
+                }
+                placeholder="Brief description of the category..."
+                rows={3}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="category-active"
+                checked={categoryFormData.isActive}
+                onCheckedChange={(checked) =>
+                  setCategoryFormData({ ...categoryFormData, isActive: checked as boolean })
+                }
+              />
+              <Label htmlFor="category-active" className="cursor-pointer">
+                Active (visible to customers)
+              </Label>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsCategoryDialogOpen(false)
+                  resetCategoryForm()
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isCategorySubmitting}>
+                {isCategorySubmitting
+                  ? "Saving..."
+                  : selectedCategory
+                    ? "Update Category"
+                    : "Create Category"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Category Dialog */}
+      <AlertDialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{selectedCategory?.name}". This action cannot be undone.
+              {selectedCategory && (
+                <span className="block mt-2 text-sm text-muted-foreground">
+                  Note: You cannot delete a category if it's being used by any products.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteCategory}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -77,29 +77,29 @@ export function ShopGrid() {
     })
 
   return (
-    <div className="py-12 lg:py-16">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+    <div className="py-8 sm:py-12 lg:py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <p className="text-sm font-medium uppercase tracking-[0.3em] text-primary mb-3">Our Collection</p>
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-foreground text-balance">
+        <div className="text-center mb-8 sm:mb-12">
+          <p className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary mb-2 sm:mb-3">Our Collection</p>
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-foreground text-balance">
             Beauty <span className="italic">Essentials</span>
           </h1>
-          <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
             Carefully curated products to complement your beauty routine. Each item selected for quality and results.
           </p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
           {/* Categories */}
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-2 justify-center w-full sm:w-auto">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium transition-all",
+                  "px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all min-h-[44px]",
                   activeCategory === cat.id
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground hover:bg-muted/80",
@@ -114,7 +114,7 @@ export function ShopGrid() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-4 py-2 rounded-full bg-muted text-foreground text-sm border-0 focus:ring-2 focus:ring-primary"
+            className="w-full sm:w-auto px-4 py-2 rounded-full bg-muted text-foreground text-sm border-0 focus:ring-2 focus:ring-primary min-h-[44px]"
           >
             <option value="featured">Featured</option>
             <option value="price-low">Price: Low to High</option>
@@ -124,7 +124,7 @@ export function ShopGrid() {
         </div>
 
         {/* Products Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -179,9 +179,9 @@ function ProductCard({ product }: { product: Product }) {
           <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">{product.name}</h3>
 
           <div className="flex items-center gap-2 mt-2">
-            <span className="text-primary font-semibold">${product.price}</span>
+            <span className="text-primary font-semibold text-sm sm:text-base">£{product.price}</span>
             {product.originalPrice && (
-              <span className="text-sm text-muted-foreground line-through">${product.originalPrice}</span>
+              <span className="text-xs sm:text-sm text-muted-foreground line-through">£{product.originalPrice}</span>
             )}
           </div>
         </div>

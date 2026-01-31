@@ -7,7 +7,7 @@ import { BookingWizard } from "@/components/booking/booking-wizard"
 export const metadata = {
   title: "Book Appointment | Luxe Beauty & Training",
   description:
-    "Schedule your luxury beauty experience at Luxe Beauty & Training. Choose from nail artistry, hair styling, and premium beauty treatments.",
+    "Schedule your luxury beauty experience at Luxe Beauty & Training. Choose from nail artistry and premium beauty treatments.",
 }
 
 function BookingWizardFallback() {

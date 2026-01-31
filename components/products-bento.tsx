@@ -37,16 +37,17 @@ export function ProductsBento() {
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.products) {
-          // API already returns only featured products when featured=true,
-          // so we simply display those (up to 5) in Beauty Essentials.
-          const featuredProducts = data.products.slice(0, 5)
-
+          // Filter to ensure only featured products are shown
+          const featuredProducts = data.products
+            .filter((p: Product) => p.featured === true)
+            .slice(0, 5)
+          
           // Convert _id to id for compatibility
           const productsWithId = featuredProducts.map((p: Product) => ({
             ...p,
             id: p._id || p.id,
           }))
-          setProducts(productsWithId.slice(0, 5))
+          setProducts(productsWithId)
         }
       }
     } catch (error) {
@@ -83,8 +84,12 @@ export function ProductsBento() {
           <div className="text-center py-12">
             <p className="text-muted-foreground">Loading products...</p>
           </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No featured products available.</p>
+          </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {products.map((product, index) => (
               <ProductCard 
                 key={product._id || product.id || index} 
@@ -111,34 +116,34 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
     <Link
       href={`/shop/${productId}`}
       ref={cardRef}
-      className={`group relative overflow-hidden rounded-2xl bg-card transition-all duration-300 hover:shadow-xl interactive-card scroll-reveal ${
+      className={`group relative overflow-hidden rounded-xl sm:rounded-2xl bg-card transition-all duration-300 hover:shadow-xl interactive-card scroll-reveal ${
         cardVisible ? 'revealed' : ''
       } ${
-        index === 0 ? "col-span-2 row-span-2" : ""
+        index === 0 ? "col-span-2 row-span-2 sm:row-span-2" : ""
       } ${index === 4 ? "col-span-2" : ""}`}
       style={{ transitionDelay: `${index * 100}ms` }}
     >
       {/* Image */}
-      <div className={`relative ${index === 0 ? "aspect-square" : "aspect-[4/5]"} lg:aspect-auto lg:h-auto flex items-center justify-center lg:block lg:overflow-visible`}>
+      <div className={`relative ${index === 0 ? "aspect-square" : "aspect-[4/5]"} lg:aspect-auto lg:h-auto flex items-center justify-center bg-muted/30 overflow-hidden`}>
         <img
           src={product.image || "/placeholder.svg"}
           alt={product.name}
-          className="h-full w-full lg:h-auto lg:w-full lg:block lg:relative object-cover lg:object-contain transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
         />
       </div>
 
       {/* Content */}
-      <div className="absolute inset-x-0 bottom-0 p-4 lg:p-6 bg-gradient-to-t from-card via-card/80 to-transparent">
-        <div className="flex items-center gap-1 mb-2">
+      <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 lg:p-6 bg-gradient-to-t from-card via-card/90 to-transparent">
+        <div className="flex items-center gap-1 mb-1 sm:mb-2">
           <Star className="h-3 w-3 fill-accent text-accent" />
-          <span className="text-xs text-muted-foreground">{product.rating}</span>
+          <span className="text-[10px] sm:text-xs text-muted-foreground">{product.rating}</span>
         </div>
         <h3
-          className={`font-medium text-foreground ${index === 0 ? "text-xl lg:text-2xl" : "text-sm lg:text-base"}`}
+          className={`font-medium text-foreground line-clamp-2 ${index === 0 ? "text-base sm:text-xl lg:text-2xl" : "text-xs sm:text-sm lg:text-base"}`}
         >
           {product.name}
         </h3>
-        <p className={`text-primary font-medium mt-1 ${index === 0 ? "text-lg" : "text-sm"}`}>
+        <p className={`text-primary font-medium mt-1 ${index === 0 ? "text-base sm:text-lg" : "text-xs sm:text-sm"}`}>
           {displayPrice}
         </p>
       </div>

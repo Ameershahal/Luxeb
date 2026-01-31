@@ -9,8 +9,8 @@ export function ServicesHero() {
           Luxury <span className="italic">Services</span>
         </h1>
         <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-          From intricate nail artistry to transformative hair styling and rejuvenating beauty treatments, every service
-          at Maison Rouge is designed to elevate your natural beauty.
+          From intricate nail artistry to rejuvenating beauty treatments, every service
+          at Luxe Beauty & Training is designed to elevate your natural beauty.
         </p>
       </div>
     </section>

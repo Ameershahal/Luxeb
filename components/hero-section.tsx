@@ -22,38 +22,38 @@ export function HeroSection() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 py-32">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-32">
         <div className="max-w-2xl">
-          <p className="text-sm font-medium uppercase tracking-[0.3em] text-primary mb-6 animate-fade-in-up opacity-0">
+          <p className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary mb-4 sm:mb-6 animate-fade-in-up opacity-0">
             Luxury Beauty Studio
           </p>
 
-          <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-medium leading-[1.1] tracking-tight text-foreground animate-fade-in-up opacity-0 animation-delay-200 text-balance">
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium leading-[1.1] tracking-tight text-foreground animate-fade-in-up opacity-0 animation-delay-200 text-balance">
             Where Beauty
             <br />
             <span className="italic">Meets Artistry</span>
           </h1>
 
-          <p className="mt-8 text-lg text-muted-foreground leading-relaxed max-w-lg animate-fade-in-up opacity-0 animation-delay-400">
-            Indulge in an exquisite beauty experience. Premium nail artistry, sophisticated hair styling, and carefully
+          <p className="mt-6 sm:mt-8 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg animate-fade-in-up opacity-0 animation-delay-400">
+            Indulge in an exquisite beauty experience. Premium nail artistry, comprehensive beauty treatments, and carefully
             curated products for the discerning woman.
           </p>
 
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 animate-fade-in-up opacity-0 animation-delay-600">
-            <Link href="/booking">
+          <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 animate-fade-in-up opacity-0 animation-delay-600">
+            <Link href="/booking" className="w-full sm:w-auto">
               <Button
                 size="lg"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 h-14 text-base group transition-all duration-300 hover:scale-105 hover:shadow-lg ripple-effect"
+                className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base group transition-all duration-300 hover:scale-105 hover:shadow-lg ripple-effect"
               >
                 Book Appointment
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
-            <Link href="/shop">
+            <Link href="/shop" className="w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="lg"
-                className="rounded-full px-8 h-14 text-base border-foreground/20 hover:bg-foreground/5 bg-transparent transition-all duration-300 hover:scale-105 hover:border-primary/50"
+                className="w-full sm:w-auto rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base border-foreground/20 hover:bg-foreground/5 bg-transparent transition-all duration-300 hover:scale-105 hover:border-primary/50"
               >
                 Explore Products
               </Button>

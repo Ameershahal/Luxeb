@@ -60,9 +60,8 @@ export function FounderPhilosophy() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { name: "Sofia Chen", role: "Lead Nail Artist", image: "/team-member-1-nail-artist.jpg" },
-              { name: "Marie Laurent", role: "Senior Hair Stylist", image: "/team-member-2-hair-stylist.jpg" },
               { name: "Emma Rose", role: "Beauty Specialist", image: "/team-member-3-beauty-specialist.jpg" },
-              { name: "Charlotte Kim", role: "Color Expert", image: "/team-member-4-color-expert.jpg" },
+              { name: "Isabella Vega", role: "Nail Art Specialist", image: "/team-member-4-color-expert.jpg" },
             ].map((member) => (
               <div key={member.name} className="group">
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-4">

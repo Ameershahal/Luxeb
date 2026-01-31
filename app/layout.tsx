@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { DM_Sans, Playfair_Display } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { CartProvider } from "@/contexts/cart-context"
+import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
@@ -19,8 +20,8 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "Luxe Beauty & Training | Luxury Beauty & Nail Studio",
   description:
-    "Experience the art of beauty at Luxe Beauty & Training. Premium nail services, hair styling, and curated beauty products in an intimate, luxurious setting.",
-  keywords: ["luxury beauty salon", "nail studio", "hair styling", "beauty products", "premium beauty services"],
+    "Experience the art of beauty at Luxe Beauty & Training. Premium nail services and curated beauty products in an intimate, luxurious setting.",
+  keywords: ["luxury beauty salon", "nail studio", "beauty products", "premium beauty services"],
     generator: 'v0.app'
 }
 
@@ -36,13 +37,20 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${dmSans.variable} ${playfair.variable} font-sans antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
         <CartProvider>
           {children}
         </CartProvider>
         <Toaster />
         <Analytics />
+        </ThemeProvider>
       </body>
     </html>
   )

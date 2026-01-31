@@ -13,12 +13,6 @@ const transformations = [
   },
   {
     id: 2,
-    before: "/before-hair-treatment-dull-damaged-hair.jpg",
-    after: "/after-hair-styling-glossy-elegant-waves-profession.jpg",
-    category: "Hair Styling",
-  },
-  {
-    id: 3,
     before: "/before-simple-nails-no-polish.jpg",
     after: "/placeholder.svg?height=600&width=500",
     category: "Classic Manicure",

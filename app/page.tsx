@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/navbar"
 import { HeroSection } from "@/components/hero-section"
+import { FounderPhotosSection } from "@/components/founder-photos-section"
 import { ServicesSection } from "@/components/services-section"
 import { ProductsBento } from "@/components/products-bento"
 import { CoursesSection } from "@/components/courses-section"
@@ -18,6 +19,7 @@ export default function HomePage() {
       <ScrollProgress />
       <Navbar />
       <HeroSection />
+      <FounderPhotosSection />
       <ServicesSection />
       <ProductsBento />
       <CoursesSection />

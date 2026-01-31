@@ -15,13 +15,6 @@ const services = [
     href: "/booking?service=nails",
   },
   {
-    title: "Hair Styling",
-    description: "Sophisticated cuts, colors, and styling by master stylists who understand your vision.",
-    image: "/professional-hair-styling-elegant-woman-salon-dark.jpg",
-    benefits: ["Precision Cuts", "Balayage", "Keratin Treatment", "Bridal"],
-    href: "/booking?service=hair",
-  },
-  {
     title: "Beauty Treatments",
     description: "Comprehensive beauty services designed to enhance your natural radiance.",
     image: "/luxury-facial-beauty-treatment-spa-elegant-woman.jpg",
@@ -34,21 +27,21 @@ export function ServicesSection() {
   const [headerRef, headerVisible] = useScrollReveal()
 
   return (
-    <section className="py-24 lg:py-32 bg-background">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+    <section className="py-16 sm:py-20 lg:py-32 bg-background">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div 
           ref={headerRef}
-          className={`text-center mb-16 lg:mb-20 scroll-reveal ${headerVisible ? 'revealed' : ''}`}
+          className={`text-center mb-12 sm:mb-16 lg:mb-20 scroll-reveal ${headerVisible ? 'revealed' : ''}`}
         >
-          <p className="text-sm font-medium uppercase tracking-[0.3em] text-primary mb-4">Our Services</p>
-          <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-foreground text-balance">
+          <p className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary mb-3 sm:mb-4">Our Services</p>
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-foreground text-balance">
             Crafted for <span className="italic">Excellence</span>
           </h2>
         </div>
 
         {/* Services Grid */}
-        <div className="grid gap-8 lg:gap-12 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:gap-8 lg:gap-12 sm:grid-cols-2 lg:grid-cols-2">
           {services.map((service, index) => {
             const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
             return (
@@ -69,31 +62,32 @@ export function ServicesSection() {
               </div>
 
               {/* Content */}
-              <div className="absolute inset-x-0 bottom-0 p-6 lg:p-8">
-                <h3 className="font-serif text-2xl lg:text-3xl font-medium text-secondary-foreground mb-3">
+              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 lg:p-8">
+                <h3 className="font-serif text-xl sm:text-2xl lg:text-3xl font-medium text-secondary-foreground mb-2 sm:mb-3">
                   {service.title}
                 </h3>
-                <p className="text-secondary-foreground/80 text-sm leading-relaxed mb-4">{service.description}</p>
+                <p className="text-secondary-foreground/80 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4 line-clamp-2">{service.description}</p>
 
                 {/* Benefits */}
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4 sm:mb-6">
                   {service.benefits.map((benefit) => (
                     <span
                       key={benefit}
-                      className="text-xs px-3 py-1 rounded-full bg-secondary-foreground/10 text-secondary-foreground/90"
+                      className="text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-secondary-foreground/10 text-secondary-foreground/90"
                     >
                       {benefit}
                     </span>
                   ))}
                 </div>
 
-                <Link href={service.href}>
+                <Link href={service.href} className="block">
                   <Button
                     variant="secondary"
-                    className="rounded-full group/btn bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90"
+                    size="sm"
+                    className="w-full sm:w-auto rounded-full group/btn bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90 text-xs sm:text-sm h-9 sm:h-10"
                   >
                     Book Now
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                    <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4 transition-transform group-hover/btn:translate-x-1" />
                   </Button>
                 </Link>
               </div>

@@ -94,7 +94,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
           <div className="lg:sticky lg:top-24 lg:self-start">
             {/* Category */}
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary mb-2">
-              {product.category === "nails" ? "Nail Care" : product.category === "hair" ? "Hair Care" : "Beauty"}
+              {product.category === "nails" ? "Nail Care" : "Beauty"}
             </p>
 
             {/* Title */}

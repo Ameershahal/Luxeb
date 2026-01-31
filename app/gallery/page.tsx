@@ -5,7 +5,7 @@ import { GalleryGrid } from "@/components/gallery/gallery-grid"
 
 export const metadata = {
   title: "Gallery | Luxe Beauty & Training",
-  description: "Explore our portfolio of stunning nail art, hair transformations, and beauty work at Luxe Beauty & Training.",
+  description: "Explore our portfolio of stunning nail art and beauty work at Luxe Beauty & Training.",
 }
 
 export default function GalleryPage() {

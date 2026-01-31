@@ -73,12 +73,12 @@ export function BookingWizard() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] py-12 lg:py-16">
-      <div className="mx-auto max-w-4xl px-6 lg:px-8">
+    <div className="min-h-[calc(100vh-5rem)] py-8 sm:py-12 lg:py-16">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-10 lg:mb-12">
-          <p className="text-sm font-medium uppercase tracking-[0.3em] text-primary mb-3">Book Your Experience</p>
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-foreground text-balance">
+        <div className="text-center mb-8 sm:mb-10 lg:mb-12">
+          <p className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary mb-2 sm:mb-3">Book Your Experience</p>
+          <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-foreground text-balance">
             Schedule Your <span className="italic">Appointment</span>
           </h1>
         </div>

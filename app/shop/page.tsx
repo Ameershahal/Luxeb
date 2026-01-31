@@ -6,7 +6,7 @@ import { ShopGrid } from "@/components/shop/shop-grid"
 export const metadata = {
   title: "Shop | Luxe Beauty & Training",
   description:
-    "Discover our curated collection of luxury beauty products. Premium nail care, hair treatments, and beauty essentials.",
+    "Discover our curated collection of luxury beauty products. Premium nail care and beauty essentials.",
 }
 
 export default function ShopPage() {

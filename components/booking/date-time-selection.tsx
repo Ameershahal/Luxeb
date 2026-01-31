@@ -1,9 +1,20 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+type AvailableTime = {
+  day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
+  startTime: string
+  endTime: string
+}
+
+type Stylist = {
+  _id: string
+  availableTimes?: AvailableTime[]
+}
 
 type DateTimeSelectionProps = {
   selectedDateTime: { date: Date | null; time: string | null }
@@ -41,6 +52,32 @@ export function DateTimeSelection({ selectedDateTime, stylistId, onSelect, onNex
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(selectedDateTime.date)
   const [selectedTime, setSelectedTime] = useState<string | null>(selectedDateTime.time)
+  const [stylist, setStylist] = useState<Stylist | null>(null)
+  const [isLoadingStylist, setIsLoadingStylist] = useState(false)
+
+  // Fetch stylist data when stylistId changes
+  useEffect(() => {
+    if (stylistId && stylistId !== "any-available") {
+      fetchStylist()
+    } else {
+      setStylist(null)
+    }
+  }, [stylistId])
+
+  const fetchStylist = async () => {
+    try {
+      setIsLoadingStylist(true)
+      const response = await fetch(`/api/admin/stylists/${stylistId}`)
+      const data = await response.json()
+      if (data.success) {
+        setStylist(data.stylist)
+      }
+    } catch (error) {
+      console.error("Error fetching stylist:", error)
+    } finally {
+      setIsLoadingStylist(false)
+    }
+  }
 
   // Generate calendar days
   const calendarDays = useMemo(() => {
@@ -78,8 +115,61 @@ export function DateTimeSelection({ selectedDateTime, stylistId, onSelect, onNex
     return date.toDateString() === selectedDate.toDateString()
   }
 
-  // Simulate some unavailable times
-  const unavailableTimes = ["10:00 AM", "2:00 PM", "4:30 PM"]
+  // Convert 12-hour time to 24-hour format for comparison
+  const convertTo24Hour = (time12h: string): string => {
+    const [time, period] = time12h.split(' ')
+    const [hours, minutes] = time.split(':')
+    let hour24 = parseInt(hours)
+    if (period === 'PM' && hour24 !== 12) hour24 += 12
+    if (period === 'AM' && hour24 === 12) hour24 = 0
+    return `${hour24.toString().padStart(2, '0')}:${minutes}`
+  }
+
+  // Convert 24-hour time to 12-hour format
+  const convertTo12Hour = (time24h: string): string => {
+    const [hours, minutes] = time24h.split(':')
+    const hour24 = parseInt(hours)
+    const hour12 = hour24 % 12 || 12
+    const period = hour24 >= 12 ? 'PM' : 'AM'
+    return `${hour12}:${minutes} ${period}`
+  }
+
+  // Get day name from date
+  const getDayName = (date: Date): string => {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+    return days[date.getDay()]
+  }
+
+  // Filter available time slots
+  const availableTimeSlots = useMemo(() => {
+    if (!selectedDate) return []
+    
+    // If "Any Available" is selected, all times are available
+    if (stylistId === "any-available" || !stylist) {
+      return timeSlots
+    }
+
+    // If stylist has no available times set, allow all times
+    if (!stylist.availableTimes || stylist.availableTimes.length === 0) {
+      return timeSlots
+    }
+
+    const dayName = getDayName(selectedDate)
+    const daySchedule = stylist.availableTimes.find(
+      (at) => at.day.toLowerCase() === dayName.toLowerCase()
+    )
+
+    // If no schedule for this day, return empty array
+    if (!daySchedule) {
+      return []
+    }
+
+    // Filter time slots that fall within the available range
+    return timeSlots.filter((timeSlot) => {
+      const time24h = convertTo24Hour(timeSlot)
+      return time24h >= daySchedule.startTime && time24h <= daySchedule.endTime
+    })
+  }, [selectedDate, stylist, stylistId])
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date)
@@ -180,26 +270,34 @@ export function DateTimeSelection({ selectedDateTime, stylistId, onSelect, onNex
           </h3>
 
           {selectedDate ? (
-            <div className="grid grid-cols-3 gap-2">
-              {timeSlots.map((time) => {
-                const isUnavailable = unavailableTimes.includes(time)
-                return (
-                  <button
-                    key={time}
-                    onClick={() => !isUnavailable && handleTimeSelect(time)}
-                    disabled={isUnavailable}
-                    className={cn(
-                      "py-3 px-2 rounded-lg text-sm font-medium transition-all",
-                      isUnavailable && "bg-muted/50 text-muted-foreground/40 cursor-not-allowed line-through",
-                      !isUnavailable && selectedTime !== time && "bg-muted hover:bg-primary/10 text-foreground",
-                      selectedTime === time && "bg-primary text-primary-foreground",
-                    )}
-                  >
-                    {time}
-                  </button>
-                )
-              })}
-            </div>
+            isLoadingStylist ? (
+              <div className="h-48 flex items-center justify-center text-muted-foreground">
+                Loading available times...
+              </div>
+            ) : availableTimeSlots.length === 0 ? (
+              <div className="h-48 flex items-center justify-center text-muted-foreground">
+                No available times for this date. Please select another date.
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {availableTimeSlots.map((time) => {
+                  const isSelected = selectedTime === time
+                  return (
+                    <button
+                      key={time}
+                      onClick={() => handleTimeSelect(time)}
+                      className={cn(
+                        "py-3 px-2 rounded-lg text-sm font-medium transition-all",
+                        !isSelected && "bg-muted hover:bg-primary/10 text-foreground",
+                        isSelected && "bg-primary text-primary-foreground",
+                      )}
+                    >
+                      {time}
+                    </button>
+                  )
+                })}
+              </div>
+            )
           ) : (
             <div className="h-48 flex items-center justify-center text-muted-foreground">
               Please select a date first

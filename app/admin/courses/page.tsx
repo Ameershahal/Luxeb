@@ -23,8 +23,7 @@ export default function AdminCourses() {
   // Mock courses data
   const courses = [
     { id: 1, title: "Professional Nail Artistry", price: 299, duration: "4 weeks", students: 8, status: "active" },
-    { id: 2, title: "Hair Styling Fundamentals", price: 349, duration: "6 weeks", students: 6, status: "active" },
-    { id: 3, title: "Beauty Makeup Masterclass", price: 249, duration: "3 weeks", students: 10, status: "active" },
+    { id: 2, title: "Beauty Makeup Masterclass", price: 249, duration: "3 weeks", students: 10, status: "active" },
   ]
 
   const filteredCourses = courses.filter((course) =>

@@ -8,7 +8,7 @@ import { BookingCtaSection } from "@/components/booking-cta-section"
 export const metadata = {
   title: "Services | Luxe Beauty & Training",
   description:
-    "Explore our full range of luxury beauty services including nail artistry, hair styling, and beauty treatments.",
+    "Explore our full range of luxury beauty services including nail artistry and beauty treatments.",
 }
 
 export default function ServicesPage() {

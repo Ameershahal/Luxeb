@@ -21,19 +21,6 @@ const courses = [
   },
   {
     id: "course-2",
-    title: "Hair Styling Fundamentals",
-    description: "Learn precision cutting, coloring techniques, and styling methods",
-    price: 349,
-    duration: "6 weeks",
-    location: "Studio Location",
-    students: "Max 6 students",
-    rating: 4.8,
-    reviews: 32,
-    image: "/professional-hair-styling-elegant-woman-salon-dark.jpg",
-    featured: false,
-  },
-  {
-    id: "course-3",
     title: "Beauty Makeup Masterclass",
     description: "From everyday looks to bridal makeup, master professional techniques",
     price: 249,
@@ -131,12 +118,12 @@ export function CoursesSection() {
                 </div>
 
                 {/* Price & CTA */}
-                <div className="flex items-center justify-between pt-4 border-t border-border">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 pt-4 border-t border-border">
                   <div>
-                    <span className="text-2xl font-serif font-medium text-primary">£{course.price}</span>
+                    <span className="text-xl sm:text-2xl font-serif font-medium text-primary">£{course.price}</span>
                   </div>
                   <Button 
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 group/btn transition-all duration-300 hover:scale-105 ripple-effect"
+                    className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-4 sm:px-6 group/btn transition-all duration-300 hover:scale-105 ripple-effect text-sm sm:text-base h-9 sm:h-10"
                     onClick={async (e) => {
                       e.preventDefault()
                       try {

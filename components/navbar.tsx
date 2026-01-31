@@ -6,6 +6,7 @@ import { Menu, X, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/contexts/cart-context"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -49,7 +50,9 @@ export function Navbar() {
     <header
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-        isScrolled ? "bg-background/95 backdrop-blur-md shadow-sm" : "bg-transparent",
+        isScrolled || isMobileMenuOpen 
+          ? "bg-background/95 backdrop-blur-md shadow-sm" 
+          : "bg-transparent",
       )}
     >
       <nav className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -80,6 +83,8 @@ export function Navbar() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-4">
+            <ThemeToggle />
+            
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative hover:scale-110 transition-transform" aria-label="Shopping cart">
                 <ShoppingBag className="h-5 w-5" />
@@ -117,14 +122,14 @@ export function Navbar() {
             isMobileMenuOpen ? "max-h-96 pb-6" : "max-h-0",
           )}
         >
-          <div className="flex flex-col gap-4 pt-4">
+          <div className="flex flex-col gap-4 pt-4 border-t border-border/50 mt-2">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
-                  "text-base font-medium tracking-wide transition-colors hover:text-primary",
+                  "text-base font-medium tracking-wide transition-colors hover:text-primary py-2",
                   link.label === "Booking" ? "text-primary" : "text-foreground/80",
                 )}
               >

@@ -6,7 +6,7 @@ import { CoursesSection } from "@/components/courses-section"
 export const metadata = {
   title: "Courses | Luxe Beauty & Training",
   description:
-    "Explore our professional beauty training courses. Learn nail artistry, hair styling, and makeup techniques from industry experts in our offline studio.",
+    "Explore our professional beauty training courses. Learn nail artistry and makeup techniques from industry experts in our offline studio.",
 }
 
 export default function CoursesPage() {

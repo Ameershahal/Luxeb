@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -67,7 +68,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="fixed left-0 top-0 h-full w-64 bg-card border-r border-border hidden lg:block">
         <div className="p-6">
           <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
             <h2 className="font-serif text-2xl font-medium text-foreground">Admin Panel</h2>
+              <ThemeToggle />
+            </div>
             <p className="text-sm text-muted-foreground">Luxe Beauty & Training</p>
           </div>
 
@@ -110,6 +114,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="lg:hidden fixed top-0 left-0 right-0 bg-card border-b border-border z-50">
         <div className="flex items-center justify-between p-4">
           <h2 className="font-serif text-xl font-medium">Admin Panel</h2>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
           <Button
             variant="ghost"
             size="icon"
@@ -117,6 +123,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
+          </div>
         </div>
 
         {/* Mobile Menu */}

@@ -187,6 +187,5 @@ export const products: Product[] = [
 export const categories = [
   { id: "all", name: "All Products" },
   { id: "nails", name: "Nail Care" },
-  { id: "hair", name: "Hair Care" },
   { id: "beauty", name: "Beauty" },
 ]

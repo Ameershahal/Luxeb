@@ -57,7 +57,7 @@ const ProductSchema = new Schema<IProduct>(
     category: {
       type: String,
       required: true,
-      enum: ['nails', 'hair', 'beauty'],
+      enum: ['nails', 'beauty'],
     },
     description: {
       type: String,
