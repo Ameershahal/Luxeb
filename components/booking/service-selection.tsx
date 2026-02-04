@@ -15,12 +15,12 @@ type Service = {
 }
 
 type ServiceSelectionProps = {
-  selectedService: Service | null
-  onSelect: (service: Service) => void
+  selectedServices: Service[]
+  onSelect: (services: Service[]) => void
   onNext: () => void
 }
 
-export function ServiceSelection({ selectedService, onSelect, onNext }: ServiceSelectionProps) {
+export function ServiceSelection({ selectedServices, onSelect, onNext }: ServiceSelectionProps) {
   const [services, setServices] = useState<Service[]>([])
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
   const [activeCategory, setActiveCategory] = useState("all")
@@ -65,6 +65,15 @@ export function ServiceSelection({ selectedService, onSelect, onNext }: ServiceS
 
   const filteredServices = activeCategory === "all" ? services : services.filter((s) => s.category === activeCategory)
 
+  const toggleService = (service: Service) => {
+    const isSelected = selectedServices.some((s) => s.id === service.id)
+    if (isSelected) {
+      onSelect(selectedServices.filter((s) => s.id !== service.id))
+    } else {
+      onSelect([...selectedServices, service])
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -102,44 +111,52 @@ export function ServiceSelection({ selectedService, onSelect, onNext }: ServiceS
         </div>
       ) : (
         <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
-          {filteredServices.map((service) => (
-          <button
-            key={service.id}
-            onClick={() => onSelect(service)}
-            className={cn(
-              "relative p-4 sm:p-5 rounded-xl text-left transition-all duration-300 border-2 min-h-[120px]",
-              selectedService?.id === service.id
-                ? "border-primary bg-primary/5 shadow-lg"
-                : "border-border bg-card hover:border-primary/50 hover:shadow-md",
-            )}
-          >
-            {/* Selected Indicator */}
-            {selectedService?.id === service.id && (
-              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-primary flex items-center justify-center">
-                <Check className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
-              </div>
-            )}
+          {filteredServices.map((service) => {
+            const isSelected = selectedServices.some((s) => s.id === service.id)
+            return (
+              <button
+                key={service.id}
+                onClick={() => toggleService(service)}
+                className={cn(
+                  "relative p-4 sm:p-5 rounded-xl text-left transition-all duration-300 border-2 min-h-[120px]",
+                  isSelected
+                    ? "border-primary bg-primary/5 shadow-lg"
+                    : "border-border bg-card hover:border-primary/50 hover:shadow-md",
+                )}
+              >
+                {isSelected && (
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-primary flex items-center justify-center">
+                    <Check className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
+                  </div>
+                )}
 
-            <h3 className="font-medium text-sm sm:text-base text-foreground mb-1 pr-6 sm:pr-8">{service.name}</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">{service.description}</p>
+                <h3 className="font-medium text-sm sm:text-base text-foreground mb-1 pr-6 sm:pr-8">{service.name}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">{service.description}</p>
 
-            <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
-              <span className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
-                <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-                {service.duration} min
-              </span>
-              <span className="text-primary font-semibold text-sm sm:text-base">£{service.price}</span>
-            </div>
-          </button>
-        ))}
+                <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                  <span className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                    {typeof service.duration === 'number' ? `${service.duration} min` : service.duration}
+                  </span>
+                  <span className="text-primary font-semibold text-sm sm:text-base">£{service.price}</span>
+                </div>
+              </button>
+            )
+          })}
         </div>
+      )}
+
+      {selectedServices.length > 0 && (
+        <p className="text-sm text-muted-foreground text-center mt-2">
+          {selectedServices.length} service{selectedServices.length !== 1 ? 's' : ''} selected • £{selectedServices.reduce((sum, s) => sum + s.price, 0)} total
+        </p>
       )}
 
       {/* Next Button */}
       <div className="flex justify-end pt-4">
         <Button
           onClick={onNext}
-          disabled={!selectedService}
+          disabled={selectedServices.length === 0}
           className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base"
         >
           Continue

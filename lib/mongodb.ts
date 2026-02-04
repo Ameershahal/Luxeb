@@ -1,10 +1,6 @@
 import mongoose from 'mongoose'
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('Please add your Mongo URI to .env.local')
-}
-
-const MONGODB_URI: string = process.env.MONGODB_URI
+const MONGODB_URI: string | undefined = process.env.MONGODB_URI
 
 interface MongooseCache {
   conn: typeof mongoose | null
@@ -23,6 +19,10 @@ if (!global.mongoose) {
 }
 
 async function connectDB() {
+  if (!MONGODB_URI) {
+    throw new Error('MongoDB is not configured. Add MONGODB_URI to .env.local (see MONGODB_SETUP.md)')
+  }
+
   if (cached.conn) {
     return cached.conn
   }

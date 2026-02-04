@@ -1,24 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
 
+function getCloudinaryConfig() {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+  let apiKey = process.env.CLOUDINARY_API_KEY
+  let apiSecret = process.env.CLOUDINARY_API_SECRET
+
+  // Derive from CLOUDINARY_URL if set (format: cloudinary://api_key:api_secret@cloud_name)
+  if ((!apiKey || !apiSecret) && process.env.CLOUDINARY_URL) {
+    try {
+      const url = new URL(process.env.CLOUDINARY_URL)
+      if (url.protocol === 'cloudinary:' && url.username && url.password) {
+        apiKey = apiKey || url.username
+        apiSecret = apiSecret || url.password
+      }
+    } catch {
+      // ignore invalid URL
+    }
+  }
+
+  if (!cloudName || !apiKey || !apiSecret) return null
+  return { cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // Check if Cloudinary is configured
-    if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 
-        !process.env.CLOUDINARY_API_KEY || 
-        !process.env.CLOUDINARY_API_SECRET) {
+    const config = getCloudinaryConfig()
+    if (!config) {
       return NextResponse.json(
-        { error: 'Cloudinary is not configured. Please set environment variables.' },
+        { error: 'Cloudinary is not configured. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY & CLOUDINARY_API_SECRET, or CLOUDINARY_URL in .env.local' },
         { status: 500 }
       )
     }
 
     // Configure Cloudinary (fresh config for each request to avoid stale signatures)
-    cloudinary.config({
-      cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-    })
+    cloudinary.config(config)
 
     const formData = await request.formData()
     const file = formData.get('file') as File

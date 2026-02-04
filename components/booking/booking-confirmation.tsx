@@ -16,9 +16,11 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
   const [isConfirmed, setIsConfirmed] = useState(false)
   const [error, setError] = useState("")
 
+  const totalPrice = bookingData.services?.reduce((sum, s) => sum + s.price, 0) ?? 0
+
   const handleConfirmBooking = async () => {
-    if (!bookingData.service) {
-      setError("Please select a service")
+    if (!bookingData.services?.length) {
+      setError("Please select at least one service")
       return
     }
 
@@ -26,28 +28,28 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
     setError("")
 
     try {
-      // Create Stripe checkout session
+      const items = bookingData.services.map((s) => ({
+        name: s.name,
+        description: `${s.category} - ${s.duration} min`,
+        price: s.price,
+        quantity: 1,
+      }))
+
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          items: [
-            {
-              name: bookingData.service.name,
-              description: `${bookingData.service.category} - ${bookingData.service.duration} min`,
-              price: bookingData.service.price,
-              quantity: 1,
-            },
-          ],
+          items,
           type: 'booking',
           metadata: {
             type: 'booking',
-            serviceId: bookingData.service.id,
-            serviceName: bookingData.service.name,
+            servicesJson: JSON.stringify(bookingData.services),
             stylistId: bookingData.stylist?.id || '',
             stylistName: bookingData.stylist?.name || '',
+            stylistImage: bookingData.stylist?.image || '',
+            stylistSpecialty: bookingData.stylist?.specialty || '',
             date: bookingData.dateTime.date?.toISOString() || '',
             time: bookingData.dateTime.time || '',
             clientName: `${bookingData.client.firstName} ${bookingData.client.lastName}`,
@@ -114,25 +116,33 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
             <h3 className="font-serif text-xl font-medium text-foreground">Booking Summary</h3>
           </div>
 
-          {/* Service */}
+          {/* Services */}
           <div className="p-6 border-b border-border">
-            <div className="flex items-start justify-between">
-              <div className="flex gap-4">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex gap-4 flex-1 min-w-0">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Sparkles className="h-5 w-5 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Service</p>
-                  <p className="font-medium text-foreground">{bookingData.service?.name}</p>
+                <div className="min-w-0">
                   <p className="text-sm text-muted-foreground">
-                    {bookingData.service?.duration} min • £{bookingData.service?.price}
+                    {bookingData.services?.length === 1 ? 'Service' : 'Services'}
                   </p>
+                  <ul className="list-none mt-1 space-y-1">
+                    {bookingData.services?.map((s) => (
+                      <li key={s.id} className="font-medium text-foreground">
+                        {s.name}
+                        <span className="text-muted-foreground font-normal text-sm ml-1">
+                          {s.duration} min • £{s.price}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
               <button
                 onClick={() => onEdit(1)}
-                className="text-primary hover:text-primary/80 transition-colors"
-                aria-label="Edit service"
+                className="text-primary hover:text-primary/80 transition-colors flex-shrink-0"
+                aria-label="Edit services"
               >
                 <Edit2 className="h-4 w-4" />
               </button>
@@ -213,7 +223,7 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
         <div className="mt-6 bg-card rounded-xl border border-border p-6">
           <div className="flex items-center justify-between">
             <span className="font-medium text-foreground">Total</span>
-            <span className="font-serif text-2xl font-medium text-primary">£{bookingData.service?.price}</span>
+            <span className="font-serif text-2xl font-medium text-primary">£{totalPrice}</span>
           </div>
           <p className="text-sm text-muted-foreground mt-2">Secure payment via Stripe</p>
         </div>

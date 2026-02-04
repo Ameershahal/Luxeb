@@ -56,14 +56,26 @@ export async function POST(request: NextRequest) {
       try {
         // Save booking if it's a booking payment
         if (session.metadata?.type === 'booking') {
-          const bookingData = {
-            service: {
+          let services: { id: string; name: string; category: string; duration: number; price: number }[] = []
+          if (session.metadata.servicesJson) {
+            try {
+              services = JSON.parse(session.metadata.servicesJson as string)
+            } catch {
+              services = []
+            }
+          }
+          if (services.length === 0 && session.metadata.serviceId) {
+            services = [{
               id: session.metadata.serviceId || '',
               name: session.metadata.serviceName || '',
               category: session.metadata.serviceCategory || '',
               duration: parseInt(session.metadata.serviceDuration || '0'),
               price: session.amount_total ? session.amount_total / 100 : 0,
-            },
+            }]
+          }
+          const bookingData = {
+            service: services[0] || undefined,
+            services,
             stylist: session.metadata.stylistId ? {
               id: session.metadata.stylistId,
               name: session.metadata.stylistName || '',

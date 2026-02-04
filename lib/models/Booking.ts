@@ -1,13 +1,21 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
 export interface IBooking extends Document {
-  service: {
+  /** @deprecated Use services array. Kept for backward compatibility. */
+  service?: {
     id: string
     name: string
     category: string
     duration: number
     price: number
   }
+  services: {
+    id: string
+    name: string
+    category: string
+    duration: number
+    price: number
+  }[]
   stylist: {
     id: string
     name: string
@@ -41,12 +49,19 @@ export interface IBooking extends Document {
 const BookingSchema = new Schema<IBooking>(
   {
     service: {
+      id: { type: String },
+      name: { type: String },
+      category: { type: String },
+      duration: { type: Number },
+      price: { type: Number },
+    },
+    services: [{
       id: { type: String, required: true },
       name: { type: String, required: true },
       category: { type: String, required: true },
       duration: { type: Number, required: true },
       price: { type: Number, required: true },
-    },
+    }],
     stylist: {
       id: { type: String },
       name: { type: String },

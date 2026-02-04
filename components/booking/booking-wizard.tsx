@@ -10,13 +10,13 @@ import { BookingConfirmation } from "./booking-confirmation"
 import { BookingProgress } from "./booking-progress"
 
 export type BookingData = {
-  service: {
+  services: {
     id: string
     name: string
     category: string
     duration: number
     price: number
-  } | null
+  }[]
   stylist: {
     id: string
     name: string
@@ -37,7 +37,7 @@ export type BookingData = {
 }
 
 const steps = [
-  { id: 1, name: "Service", description: "Choose your service" },
+  { id: 1, name: "Services", description: "Choose your services" },
   { id: 2, name: "Stylist", description: "Select your stylist" },
   { id: 3, name: "Date & Time", description: "Pick a time" },
   { id: 4, name: "Details", description: "Your information" },
@@ -48,7 +48,7 @@ export function BookingWizard() {
   const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState(1)
   const [bookingData, setBookingData] = useState<BookingData>({
-    service: null,
+    services: [],
     stylist: null,
     dateTime: { date: null, time: null },
     client: { firstName: "", lastName: "", email: "", phone: "", notes: "" },
@@ -90,15 +90,15 @@ export function BookingWizard() {
         <div className="mt-10 lg:mt-12">
           {currentStep === 1 && (
             <ServiceSelection
-              selectedService={bookingData.service}
-              onSelect={(service) => updateBookingData({ service })}
+              selectedServices={bookingData.services}
+              onSelect={(services) => updateBookingData({ services })}
               onNext={nextStep}
             />
           )}
           {currentStep === 2 && (
             <StylistSelection
               selectedStylist={bookingData.stylist}
-              serviceCategory={bookingData.service?.category || ""}
+              serviceCategory={bookingData.services?.[0]?.category || ""}
               onSelect={(stylist) => updateBookingData({ stylist })}
               onNext={nextStep}
               onBack={prevStep}

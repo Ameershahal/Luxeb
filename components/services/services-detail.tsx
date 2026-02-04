@@ -1,49 +1,136 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Clock } from "lucide-react"
+import { ArrowRight, Clock, Loader2 } from "lucide-react"
 
-const serviceCategories = [
-  {
-    id: "nails",
-    title: "Nail Artistry",
+type ServiceFromApi = {
+  id: string
+  name: string
+  category: string
+  duration: number
+  price: number
+  description?: string
+}
+
+type CategoryGroup = {
+  id: string
+  title: string
+  description: string
+  image: string
+  services: { name: string; duration: string; price: number }[]
+}
+
+// Optional: default images/descriptions for known categories (used when we have no DB description)
+const categoryDefaults: Record<string, { description: string; image: string }> = {
+  nails: {
     description: "From classic elegance to avant-garde designs, our nail artists create miniature masterpieces.",
     image: "/elegant-manicure-nail-art-close-up-with-gold-and-d.jpg",
-    services: [
-      { name: "Classic Manicure", duration: "45 min", price: 45 },
-      { name: "Gel Manicure", duration: "60 min", price: 65 },
-      { name: "Luxury Spa Manicure", duration: "75 min", price: 85 },
-      { name: "Nail Art Design", duration: "90 min", price: 120 },
-      { name: "Classic Pedicure", duration: "45 min", price: 55 },
-      { name: "Luxury Spa Pedicure", duration: "75 min", price: 95 },
-      { name: "Gel Extensions", duration: "120 min", price: 150 },
-      { name: "Nail Repair", duration: "30 min", price: 25 },
-    ],
   },
-  {
-    id: "beauty",
-    title: "Beauty Treatments",
+  beauty: {
     description: "Comprehensive beauty services designed to enhance your natural radiance and confidence.",
     image: "/luxury-facial-beauty-treatment-spa-elegant-woman.jpg",
-    services: [
-      { name: "Signature Facial", duration: "60 min", price: 125 },
-      { name: "Hydrating Facial", duration: "75 min", price: 155 },
-      { name: "Anti-Aging Facial", duration: "90 min", price: 195 },
-      { name: "Classic Lash Extensions", duration: "90 min", price: 185 },
-      { name: "Volume Lash Extensions", duration: "120 min", price: 245 },
-      { name: "Lash Lift & Tint", duration: "60 min", price: 95 },
-      { name: "Brow Styling", duration: "30 min", price: 55 },
-      { name: "Bridal Makeup", duration: "90 min", price: 225 },
-    ],
   },
-]
+}
+
+function formatDuration(mins: number): string {
+  if (mins < 60) return `${mins} min`
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  return m ? `${h}h ${m}min` : `${h}h`
+}
 
 export function ServicesDetail() {
+  const [categories, setCategories] = useState<CategoryGroup[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchServices() {
+      try {
+        setError(null)
+        const res = await fetch("/api/services")
+        const data = await res.json()
+
+        if (!data.success || !data.services?.length) {
+          setCategories([])
+          return
+        }
+
+        const services = data.services as ServiceFromApi[]
+        const byCategory = new Map<string, ServiceFromApi[]>()
+        for (const s of services) {
+          const cat = (s.category || "other").toLowerCase().replace(/\s+/g, "-")
+          if (!byCategory.has(cat)) byCategory.set(cat, [])
+          byCategory.get(cat)!.push(s)
+        }
+
+        const list: CategoryGroup[] = Array.from(byCategory.entries()).map(([id, items]) => {
+          const defaults = categoryDefaults[id] || {
+            description: `Our range of ${id.replace(/-/g, " ")} services.`,
+            image: "/placeholder.svg",
+          }
+          return {
+            id,
+            title: id.charAt(0).toUpperCase() + id.slice(1).replace(/-/g, " "),
+            description: defaults.description,
+            image: defaults.image,
+            services: items.map((s) => ({
+              name: s.name,
+              duration: typeof s.duration === "number" ? formatDuration(s.duration) : String(s.duration),
+              price: s.price,
+            })),
+          }
+        })
+
+        setCategories(list)
+      } catch (e) {
+        console.error("Error fetching services:", e)
+        setError("Unable to load services. Please try again later.")
+        setCategories([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchServices()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <section className="py-8 sm:py-12 lg:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex justify-center py-24">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section className="py-8 sm:py-12 lg:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-muted-foreground">{error}</p>
+        </div>
+      </section>
+    )
+  }
+
+  if (categories.length === 0) {
+    return (
+      <section className="py-8 sm:py-12 lg:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-muted-foreground">No services available at the moment.</p>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="py-8 sm:py-12 lg:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {serviceCategories.map((category, index) => (
+        {categories.map((category, index) => (
           <div
             key={category.id}
             id={category.id}
@@ -51,7 +138,6 @@ export function ServicesDetail() {
               index !== 0 ? "border-t border-border" : ""
             }`}
           >
-            {/* Image */}
             <div className={`${index % 2 === 1 ? "lg:order-2" : ""}`}>
               <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
                 <img
@@ -62,12 +148,14 @@ export function ServicesDetail() {
               </div>
             </div>
 
-            {/* Content */}
             <div className={`${index % 2 === 1 ? "lg:order-1" : ""}`}>
-              <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-medium text-foreground mb-3 sm:mb-4">{category.title}</h2>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-6 sm:mb-8">{category.description}</p>
+              <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-medium text-foreground mb-3 sm:mb-4">
+                {category.title}
+              </h2>
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-6 sm:mb-8">
+                {category.description}
+              </p>
 
-              {/* Services List */}
               <div className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
                 {category.services.map((service) => (
                   <div
@@ -81,7 +169,9 @@ export function ServicesDetail() {
                         {service.duration}
                       </p>
                     </div>
-                    <span className="text-primary font-semibold text-sm sm:text-base flex-shrink-0">£{service.price}</span>
+                    <span className="text-primary font-semibold text-sm sm:text-base flex-shrink-0">
+                      £{service.price}
+                    </span>
                   </div>
                 ))}
               </div>

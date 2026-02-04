@@ -64,6 +64,9 @@
     "vaul": "^1.1.2",
     "zod": "3.25.76"
   },
+  "optionalDependencies": {
+    "@next/swc-darwin-arm64": "16.0.10"
+  },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.9",
     "@types/node": "^22",
