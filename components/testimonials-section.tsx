@@ -89,7 +89,7 @@ export function TestimonialsSection() {
           ref={headerRef}
           className={`text-center mb-6 sm:mb-8 md:mb-12 lg:mb-16 scroll-reveal ${headerVisible ? 'revealed' : ''}`}
         >
-          <p className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary mb-2 sm:mb-3 md:mb-4">Client Stories</p>
+          <p className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary mb-2 sm:mb-3 md:mb-4">Client Stories · {testimonials.length} Reviews</p>
           <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-foreground text-balance px-2">
             Words of <span className="italic">Appreciation</span>
           </h2>
