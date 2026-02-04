@@ -24,6 +24,15 @@ const testimonials = [
     text: "An oasis of luxury in the city. The products they use are exceptional, and the results speak for themselves. This is the only place I trust for special occasions.",
     service: "Beauty Treatments",
   },
+  {
+    id: 3,
+    name: "Sophie L.",
+    location: "London",
+    image: "/placeholder.svg",
+    rating: 5,
+    text: "From my first visit I knew this was something special. The team is incredibly skilled and the atmosphere is so relaxing. I've recommended Luxe Beauty to all my friends.",
+    service: "Nail Artistry",
+  },
 ]
 
 export function TestimonialsSection() {
