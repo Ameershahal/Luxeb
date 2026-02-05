@@ -17,7 +17,6 @@ export default function FounderPage() {
       <div className="pt-20">
         <FounderHero />
         <FounderStory />
-        <FounderPhilosophy />
         <BookingCtaSection />
       </div>
       <Footer />
