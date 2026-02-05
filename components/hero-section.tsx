@@ -24,19 +24,12 @@ export function HeroSection() {
       {/* Content */}
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-32">
         <div className="max-w-2xl">
-          <p className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary mb-4 sm:mb-6 animate-fade-in-up opacity-0">
-            Luxury Beauty Studio
-          </p>
-
-          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium leading-[1.1] tracking-tight text-foreground animate-fade-in-up opacity-0 animation-delay-200 text-balance">
-            Where Beauty
-            <br />
-            <span className="italic">Meets Artistry</span>
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium leading-[1.1] tracking-tight text-foreground animate-fade-in-up opacity-0 animation-delay-200 text-balance mt-8 sm:mt-12 lg:mt-16">
+            Welcome to LUXE BEAUTY & TRAINING ACADEMY
           </h1>
 
           <p className="mt-6 sm:mt-8 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg animate-fade-in-up opacity-0 animation-delay-400">
-            Indulge in an exquisite beauty experience. Premium nail artistry, comprehensive beauty treatments, and carefully
-            curated products for the discerning woman.
+            Bringing 10+ years of experience in nail care, professional pedicure techniques, heel repair, and fungal nail treatments. We offer high quality professional training and recognized ABT Accreditation certifications.
           </p>
 
           <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 animate-fade-in-up opacity-0 animation-delay-600">

@@ -1,19 +1,13 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Instagram, Facebook, MessageCircle, MapPin, Clock, Phone, Mail } from "lucide-react"
+import { Instagram, Facebook, MapPin, Clock, Phone, Mail } from "lucide-react"
 
 const footerLinks = {
-  services: [
-    { label: "Nail Artistry", href: "/services#nails" },
-    { label: "Beauty Treatments", href: "/services#beauty" },
-    { label: "Bridal Packages", href: "/services#bridal" },
-  ],
   company: [
     { label: "About Us", href: "/founder" },
     { label: "Gallery", href: "/gallery" },
-    { label: "Careers", href: "/careers" },
-    { label: "Gift Cards", href: "/gift-cards" },
   ],
   legal: [
     { label: "Privacy Policy", href: "/privacy" },
@@ -22,7 +16,28 @@ const footerLinks = {
   ],
 }
 
+type ServiceItem = { id: string; name: string; category: string }
+
 export function Footer() {
+  const [services, setServices] = useState<ServiceItem[]>([])
+
+  useEffect(() => {
+    fetch("/api/services")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.services)) {
+          setServices(
+            data.services.map((s: any) => ({
+              id: s.id,
+              name: s.name,
+              category: s.category || "",
+            }))
+          )
+        }
+      })
+      .catch(() => {})
+  }, [])
+
   return (
     <footer className="bg-secondary text-secondary-foreground">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
@@ -60,16 +75,20 @@ export function Footer() {
           <div>
             <h4 className="font-medium text-secondary-foreground mb-4">Services</h4>
             <ul className="space-y-3">
-              {footerLinks.services.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-secondary-foreground/70 hover:text-secondary-foreground transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+              {services.length === 0 ? (
+                <li className="text-sm text-secondary-foreground/70">Loading…</li>
+              ) : (
+                services.map((service) => (
+                  <li key={service.id}>
+                    <Link
+                      href={`/booking?service=${encodeURIComponent(service.category)}`}
+                      className="text-sm text-secondary-foreground/70 hover:text-secondary-foreground transition-colors"
+                    >
+                      {service.name}
+                    </Link>
+                  </li>
+                ))
+              )}
             </ul>
           </div>
 

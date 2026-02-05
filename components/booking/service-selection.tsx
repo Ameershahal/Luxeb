@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Clock, Check, Loader2 } from "lucide-react"
+import { ArrowRight, ArrowLeft, Clock, Check, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type Service = {
@@ -15,15 +15,21 @@ type Service = {
 }
 
 type ServiceSelectionProps = {
+  selectedCategoryId: string
   selectedServices: Service[]
   onSelect: (services: Service[]) => void
   onNext: () => void
+  onBack: () => void
 }
 
-export function ServiceSelection({ selectedServices, onSelect, onNext }: ServiceSelectionProps) {
+export function ServiceSelection({
+  selectedCategoryId,
+  selectedServices,
+  onSelect,
+  onNext,
+  onBack,
+}: ServiceSelectionProps) {
   const [services, setServices] = useState<Service[]>([])
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
-  const [activeCategory, setActiveCategory] = useState("all")
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -35,25 +41,8 @@ export function ServiceSelection({ selectedServices, onSelect, onNext }: Service
       setIsLoading(true)
       const response = await fetch("/api/services")
       const data = await response.json()
-      
       if (data.success) {
         setServices(data.services || [])
-        
-        // Generate categories from services
-        const uniqueCategories = new Set<string>()
-        data.services?.forEach((service: Service) => {
-          uniqueCategories.add(service.category)
-        })
-        
-        // Create category list with "All Services" first
-        const categoryList = [
-          { id: "all", name: "All Services" },
-          ...Array.from(uniqueCategories).map((cat) => ({
-            id: cat,
-            name: cat.charAt(0).toUpperCase() + cat.slice(1),
-          })),
-        ]
-        setCategories(categoryList)
       }
     } catch (error) {
       console.error("Error fetching services:", error)
@@ -63,7 +52,7 @@ export function ServiceSelection({ selectedServices, onSelect, onNext }: Service
     }
   }
 
-  const filteredServices = activeCategory === "all" ? services : services.filter((s) => s.category === activeCategory)
+  const filteredServices = services.filter((s) => s.category === selectedCategoryId)
 
   const toggleService = (service: Service) => {
     const isSelected = selectedServices.some((s) => s.id === service.id)
@@ -84,25 +73,9 @@ export function ServiceSelection({ selectedServices, onSelect, onNext }: Service
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Category Filter */}
-      {categories.length > 0 && (
-        <div className="flex flex-wrap gap-2 justify-center">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={cn(
-                "px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all min-h-[44px]",
-                activeCategory === cat.id
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80",
-              )}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </div>
-      )}
+      <p className="text-center text-muted-foreground text-sm sm:text-base">
+        Select one or more services. You can add multiple from this category.
+      </p>
 
       {/* Services Grid */}
       {filteredServices.length === 0 ? (
@@ -148,19 +121,27 @@ export function ServiceSelection({ selectedServices, onSelect, onNext }: Service
 
       {selectedServices.length > 0 && (
         <p className="text-sm text-muted-foreground text-center mt-2">
-          {selectedServices.length} service{selectedServices.length !== 1 ? 's' : ''} selected • £{selectedServices.reduce((sum, s) => sum + s.price, 0)} total
+          {selectedServices.length} service{selectedServices.length !== 1 ? "s" : ""} selected • £
+          {selectedServices.reduce((sum, s) => sum + s.price, 0)} total
         </p>
       )}
 
-      {/* Next Button */}
-      <div className="flex justify-end pt-4">
+      <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-4">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="w-full sm:w-auto rounded-full px-5 sm:px-6 h-11 sm:h-12 bg-transparent text-sm sm:text-base"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
         <Button
           onClick={onNext}
           disabled={selectedServices.length === 0}
           className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base"
         >
-          Continue
-          <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+          Continue to stylist
+          <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </div>

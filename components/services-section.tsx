@@ -1,30 +1,58 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 
-const services = [
+type ServiceFromApi = { id: string; name: string; category: string }
+
+const serviceCards = [
   {
-    title: "Nail Artistry",
+    title: "Manicure",
     description: "Exquisite manicures, intricate nail art, and luxurious treatments using premium products.",
-    image: "/elegant-manicure-nail-art-close-up-with-gold-and-d.jpg",
-    benefits: ["Gel & Shellac", "Nail Art", "Spa Manicure", "Extensions"],
+    image: "/manicure.jpeg",
+    categoryMatch: (cat: string) => /manicure/i.test(cat) && !/pedicure|nails/i.test(cat),
     href: "/booking?service=nails",
   },
   {
-    title: "Beauty Treatments",
-    description: "Comprehensive beauty services designed to enhance your natural radiance.",
-    image: "/luxury-facial-beauty-treatment-spa-elegant-woman.jpg",
-    benefits: ["Facials", "Lash Extensions", "Brow Styling", "Makeup"],
-    href: "/booking?service=beauty",
+    title: "Pedicure",
+    description: "Advanced Pedicure & Foot Health",
+    image: "/pedicure.jpeg",
+    categoryMatch: (cat: string) => /pedicure|foot|feet/i.test(cat),
+    href: "/booking?service=pedicure",
+  },
+  {
+    title: "Treatment",
+    description: "Specialised treatments and premium care.",
+    image: "/treatment.jpeg",
+    categoryMatch: (cat: string) => /treatment/i.test(cat),
+    href: "/booking?service=treatment",
   },
 ]
 
 export function ServicesSection() {
   const [headerRef, headerVisible] = useScrollReveal()
+  const [servicesByCategory, setServicesByCategory] = useState<Record<string, string[]>>({})
+
+  useEffect(() => {
+    fetch("/api/services")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.success || !data.services?.length) return
+        const list: ServiceFromApi[] = data.services
+        const byCategory: Record<string, string[]> = {}
+        serviceCards.forEach((card) => {
+          const names = list
+            .filter((s) => card.categoryMatch(s.category))
+            .map((s) => s.name)
+          byCategory[card.title] = names.length ? names : []
+        })
+        setServicesByCategory(byCategory)
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <section className="py-16 sm:py-20 lg:py-32 bg-background">
@@ -41,9 +69,10 @@ export function ServicesSection() {
         </div>
 
         {/* Services Grid */}
-        <div className="grid gap-6 sm:gap-8 lg:gap-12 sm:grid-cols-2 lg:grid-cols-2">
-          {services.map((service, index) => {
+        <div className="grid gap-6 sm:gap-8 lg:gap-12 sm:grid-cols-2 lg:grid-cols-3">
+          {serviceCards.map((service, index) => {
             const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
+            const benefits = servicesByCategory[service.title] ?? []
             return (
             <div 
               key={service.title} 
@@ -68,17 +97,19 @@ export function ServicesSection() {
                 </h3>
                 <p className="text-secondary-foreground/80 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4 line-clamp-2">{service.description}</p>
 
-                {/* Benefits */}
-                <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4 sm:mb-6">
-                  {service.benefits.map((benefit) => (
-                    <span
-                      key={benefit}
-                      className="text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-secondary-foreground/10 text-secondary-foreground/90"
-                    >
-                      {benefit}
-                    </span>
-                  ))}
-                </div>
+                {/* Real services from API */}
+                {benefits.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4 sm:mb-6">
+                    {benefits.map((name) => (
+                      <span
+                        key={name}
+                        className="text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-secondary-foreground/10 text-secondary-foreground/90"
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 <Link href={service.href} className="block">
                   <Button

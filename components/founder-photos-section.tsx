@@ -74,7 +74,7 @@ export function FounderPhotosSection() {
               Meet the Founder
             </p>
             <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-foreground text-balance">
-              The Vision Behind <span className="italic">Luxe Beauty</span>
+              The Vision Behind <span className="italic">Luxe Beauty & Training Academy</span>
             </h2>
             <p className="mt-4 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
               Get to know Ionela, the creative force behind our luxury beauty studio
@@ -83,7 +83,7 @@ export function FounderPhotosSection() {
 
           {/* Photo Grid */}
           {availablePhotos.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 lg:max-w-5xl xl:max-w-6xl lg:mx-auto">
               {availablePhotos.map((photo, index) => {
                 const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
                 return (
@@ -103,11 +103,6 @@ export function FounderPhotosSection() {
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-
-                    {/* Caption on hover */}
-                    <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <p className="text-xs sm:text-sm text-foreground font-medium">{photo.caption}</p>
                     </div>
 
                     {/* Click indicator */}

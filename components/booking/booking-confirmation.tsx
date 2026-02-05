@@ -140,7 +140,7 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
                 </div>
               </div>
               <button
-                onClick={() => onEdit(1)}
+                onClick={() => onEdit(2)}
                 className="text-primary hover:text-primary/80 transition-colors flex-shrink-0"
                 aria-label="Edit services"
               >
@@ -162,7 +162,7 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
                 </div>
               </div>
               <button
-                onClick={() => onEdit(2)}
+                onClick={() => onEdit(3)}
                 className="text-primary hover:text-primary/80 transition-colors"
                 aria-label="Edit stylist"
               >
@@ -185,7 +185,7 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
                 </div>
               </div>
               <button
-                onClick={() => onEdit(3)}
+                onClick={() => onEdit(4)}
                 className="text-primary hover:text-primary/80 transition-colors"
                 aria-label="Edit date and time"
               >
@@ -209,7 +209,7 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
                 )}
               </div>
               <button
-                onClick={() => onEdit(4)}
+                onClick={() => onEdit(5)}
                 className="text-primary hover:text-primary/80 transition-colors"
                 aria-label="Edit contact information"
               >

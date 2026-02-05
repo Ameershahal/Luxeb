@@ -1,101 +1,59 @@
 "use client"
 
-import { useState } from "react"
-import { X, ChevronLeft, ChevronRight } from "lucide-react"
+import { useState, useEffect } from "react"
+import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type GalleryItem = {
-  id: number
+  id: string
   image: string
   category: string
   title: string
   description: string
 }
 
-const galleryItems: GalleryItem[] = [
-  {
-    id: 1,
-    image: "/after-luxury-nail-art-gold-dark-red-elegant-manicu.jpg",
-    category: "nails",
-    title: "Gold & Burgundy Elegance",
-    description: "Intricate gold leaf design on a deep burgundy base",
-  },
-  {
-    id: 2,
-    image: "/gallery-nail-art-minimalist-french-gold.jpg",
-    category: "nails",
-    title: "Modern French",
-    description: "Minimalist French tips with gold accents",
-  },
-  {
-    id: 3,
-    image: "/gallery-makeup-bridal-natural-glow.jpg",
-    category: "beauty",
-    title: "Bridal Radiance",
-    description: "Natural, luminous bridal makeup look",
-  },
-  {
-    id: 4,
-    image: "/gallery-nail-art-geometric-black-gold.jpg",
-    category: "nails",
-    title: "Geometric Luxe",
-    description: "Bold geometric patterns in black and gold",
-  },
-  {
-    id: 5,
-    image: "/gallery-lash-extensions-volume.jpg",
-    category: "beauty",
-    title: "Volume Lashes",
-    description: "Full, fluttery volume lash extensions",
-  },
-  {
-    id: 6,
-    image: "/gallery-nail-art-marble-rose-gold.jpg",
-    category: "nails",
-    title: "Rose Gold Marble",
-    description: "Delicate marble effect with rose gold veining",
-  },
-  {
-    id: 7,
-    image: "/gallery-brow-styling-lamination.jpg",
-    category: "beauty",
-    title: "Brow Lamination",
-    description: "Perfectly styled and laminated brows",
-  },
-  {
-    id: 12,
-    image: "/gallery-nail-art-floral-delicate.jpg",
-    category: "nails",
-    title: "Botanical Art",
-    description: "Hand-painted delicate floral designs",
-  },
-]
-
-const categories = [
-  { id: "all", name: "All Work" },
-  { id: "nails", name: "Nail Art" },
-  { id: "beauty", name: "Beauty" },
-]
-
 export function GalleryGrid() {
-  const [activeCategory, setActiveCategory] = useState("all")
-  const [selectedImage, setSelectedImage] = useState<number | null>(null)
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
-  const filteredItems =
-    activeCategory === "all" ? galleryItems : galleryItems.filter((i) => i.category === activeCategory)
+  useEffect(() => {
+    async function fetchGallery() {
+      try {
+        const res = await fetch("/api/gallery")
+        const data = await res.json()
+        if (data.success && Array.isArray(data.galleryItems)) {
+          setGalleryItems(
+            data.galleryItems.map((item: any) => ({
+              id: item.id || item._id,
+              image: item.image || "",
+              category: item.category || "nails",
+              title: item.title || "",
+              description: item.description || "",
+            }))
+          )
+        }
+      } catch (err) {
+        console.error("Failed to load gallery", err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchGallery()
+  }, [])
 
-  const currentIndex = selectedImage !== null ? filteredItems.findIndex((i) => i.id === selectedImage) : -1
-  const currentItem = selectedImage !== null ? filteredItems.find((i) => i.id === selectedImage) : null
+  const currentIndex = selectedImage !== null ? galleryItems.findIndex((i) => i.id === selectedImage) : -1
+  const currentItem = selectedImage !== null ? galleryItems.find((i) => i.id === selectedImage) : null
 
   const goToPrevious = () => {
     if (currentIndex > 0) {
-      setSelectedImage(filteredItems[currentIndex - 1].id)
+      setSelectedImage(galleryItems[currentIndex - 1].id)
     }
   }
 
   const goToNext = () => {
-    if (currentIndex < filteredItems.length - 1) {
-      setSelectedImage(filteredItems[currentIndex + 1].id)
+    if (currentIndex < galleryItems.length - 1) {
+      setSelectedImage(galleryItems[currentIndex + 1].id)
     }
   }
 
@@ -113,27 +71,16 @@ export function GalleryGrid() {
           </p>
         </div>
 
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 justify-center mb-10">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={cn(
-                "px-5 py-2.5 rounded-full text-sm font-medium transition-all",
-                activeCategory === cat.id
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80",
-              )}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </div>
-
         {/* Masonry Grid */}
+        {isLoading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          </div>
+        ) : galleryItems.length === 0 ? (
+          <p className="text-center text-muted-foreground py-16">No gallery images yet.</p>
+        ) : (
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
-          {filteredItems.map((item, index) => (
+          {galleryItems.map((item, index) => (
             <button
               key={item.id}
               onClick={() => setSelectedImage(item.id)}
@@ -156,6 +103,7 @@ export function GalleryGrid() {
             </button>
           ))}
         </div>
+        )}
       </div>
 
       {/* Lightbox */}
@@ -191,7 +139,7 @@ export function GalleryGrid() {
               e.stopPropagation()
               goToNext()
             }}
-            disabled={currentIndex === filteredItems.length - 1}
+            disabled={currentIndex === galleryItems.length - 1}
             className="absolute right-4 h-12 w-12 rounded-full bg-secondary-foreground/10 flex items-center justify-center text-secondary-foreground hover:bg-secondary-foreground/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             aria-label="Next image"
           >

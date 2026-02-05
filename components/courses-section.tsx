@@ -1,11 +1,26 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, MapPin, Clock, Users, Star } from "lucide-react"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 
-const courses = [
+type Course = {
+  id: string
+  title: string
+  description: string
+  price: number
+  duration: string
+  location: string
+  students: string
+  rating: number
+  reviews: number
+  image: string
+  featured: boolean
+}
+
+const fallbackCourses: Course[] = [
   {
     id: "course-1",
     title: "Professional Nail Artistry",
@@ -34,8 +49,143 @@ const courses = [
   },
 ]
 
-export function CoursesSection() {
+function CourseCard({ course, index }: { course: Course; index: number }) {
+  const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
+  return (
+    <div
+      ref={cardRef}
+      className={`group relative overflow-hidden rounded-2xl bg-card border border-border transition-all duration-300 hover:shadow-xl interactive-card scroll-reveal ${
+        cardVisible ? 'revealed' : ''
+      }`}
+      style={{ transitionDelay: `${index * 100}ms` }}
+    >
+      {/* Image */}
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <img
+          src={course.image || "/placeholder.svg"}
+          alt={course.title}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-primary/90 backdrop-blur-sm text-primary-foreground text-xs font-medium">
+          Offline Course
+        </div>
+        {course.featured && (
+          <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-accent/90 backdrop-blur-sm text-accent-foreground text-xs font-medium">
+            Featured
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-6">
+        {/* Rating */}
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-1">
+            <Star className="h-4 w-4 fill-accent text-accent" />
+            <span className="text-sm font-medium text-foreground">{course.rating}</span>
+          </div>
+          <span className="text-sm text-muted-foreground">({course.reviews} reviews)</span>
+        </div>
+
+        {/* Title */}
+        <h3 className="font-serif text-xl lg:text-2xl font-medium text-foreground mb-2">{course.title}</h3>
+
+        {/* Description */}
+        <p className="text-muted-foreground text-sm leading-relaxed mb-4">{course.description}</p>
+
+        {/* Course Details */}
+        <div className="space-y-2 mb-6">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4" />
+            <span>{course.duration}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4" />
+            <span>{course.location}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-4 w-4" />
+            <span>{course.students}</span>
+          </div>
+        </div>
+
+        {/* Price & CTA */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 pt-4 border-t border-border">
+          <div>
+            <span className="text-xl sm:text-2xl font-serif font-medium text-primary">£{course.price}</span>
+          </div>
+          <Button 
+            className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-4 sm:px-6 group/btn transition-all duration-300 hover:scale-105 ripple-effect text-sm sm:text-base h-9 sm:h-10"
+            onClick={async (e) => {
+              e.preventDefault()
+              try {
+                const response = await fetch('/api/create-checkout-session', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    items: [
+                      {
+                        name: course.title,
+                        description: course.description,
+                        price: course.price,
+                        quantity: 1,
+                        image: course.image,
+                      },
+                    ],
+                    type: 'course',
+                    metadata: {
+                      type: 'course',
+                      courseId: course.id,
+                      courseName: course.title,
+                      duration: course.duration,
+                      location: course.location,
+                    },
+                  }),
+                })
+
+                const data = await response.json()
+
+                if (!response.ok) {
+                  throw new Error(data.error || 'Failed to create checkout session')
+                }
+
+                // Redirect to Stripe Checkout
+                if (data.url) {
+                  window.location.href = data.url
+                }
+              } catch (error) {
+                console.error('Checkout error:', error)
+                alert('Failed to process enrollment. Please try again.')
+              }
+            }}
+          >
+            Enroll Now
+            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function CoursesSection({ showAll = false }: { showAll?: boolean }) {
   const [headerRef, headerVisible] = useScrollReveal()
+  const [courses, setCourses] = useState<Course[]>(fallbackCourses)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/courses")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.courses?.length) {
+          setCourses(data.courses)
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <section className="py-24 lg:py-32 bg-background">
@@ -47,147 +197,38 @@ export function CoursesSection() {
         >
           <p className="text-sm font-medium uppercase tracking-[0.3em] text-primary mb-4">Training Programs</p>
           <h2 className="font-serif text-4xl sm:text-5xl font-medium tracking-tight text-foreground text-balance">
-            Professional <span className="italic">Courses</span>
+            {showAll ? 'All ' : 'Professional '}<span className="italic">Courses</span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
             Join our exclusive offline training programs and learn from master artists in an intimate, hands-on setting.
           </p>
         </div>
 
-        {/* Courses Grid */}
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        ) : (
+        <>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course, index) => {
-            const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
-            return (
-            <div
-              key={course.id}
-              ref={cardRef}
-              className={`group relative overflow-hidden rounded-2xl bg-card border border-border transition-all duration-300 hover:shadow-xl interactive-card scroll-reveal ${
-                cardVisible ? 'revealed' : ''
-              }`}
-              style={{ transitionDelay: `${index * 100}ms` }}
-            >
-              {/* Image */}
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <img
-                  src={course.image || "/placeholder.svg"}
-                  alt={course.title}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-primary/90 backdrop-blur-sm text-primary-foreground text-xs font-medium">
-                  Offline Course
-                </div>
-                {course.featured && (
-                  <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-accent/90 backdrop-blur-sm text-accent-foreground text-xs font-medium">
-                    Featured
-                  </div>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="p-6">
-                {/* Rating */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-accent text-accent" />
-                    <span className="text-sm font-medium text-foreground">{course.rating}</span>
-                  </div>
-                  <span className="text-sm text-muted-foreground">({course.reviews} reviews)</span>
-                </div>
-
-                {/* Title */}
-                <h3 className="font-serif text-xl lg:text-2xl font-medium text-foreground mb-2">{course.title}</h3>
-
-                {/* Description */}
-                <p className="text-muted-foreground text-sm leading-relaxed mb-4">{course.description}</p>
-
-                {/* Course Details */}
-                <div className="space-y-2 mb-6">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    <span>{course.duration}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{course.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    <span>{course.students}</span>
-                  </div>
-                </div>
-
-                {/* Price & CTA */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 pt-4 border-t border-border">
-                  <div>
-                    <span className="text-xl sm:text-2xl font-serif font-medium text-primary">£{course.price}</span>
-                  </div>
-                  <Button 
-                    className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-4 sm:px-6 group/btn transition-all duration-300 hover:scale-105 ripple-effect text-sm sm:text-base h-9 sm:h-10"
-                    onClick={async (e) => {
-                      e.preventDefault()
-                      try {
-                        const response = await fetch('/api/create-checkout-session', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({
-                            items: [
-                              {
-                                name: course.title,
-                                description: course.description,
-                                price: course.price,
-                                quantity: 1,
-                                image: course.image,
-                              },
-                            ],
-                            type: 'course',
-                            metadata: {
-                              type: 'course',
-                              courseId: course.id,
-                              courseName: course.title,
-                              duration: course.duration,
-                              location: course.location,
-                            },
-                          }),
-                        })
-
-                        const data = await response.json()
-
-                        if (!response.ok) {
-                          throw new Error(data.error || 'Failed to create checkout session')
-                        }
-
-                        // Redirect to Stripe Checkout
-                        if (data.url) {
-                          window.location.href = data.url
-                        }
-                      } catch (error) {
-                        console.error('Checkout error:', error)
-                        alert('Failed to process enrollment. Please try again.')
-                      }
-                    }}
-                  >
-                    Enroll Now
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-            )
-          })}
+          {courses.map((course, index) => (
+            <CourseCard key={course.id} course={course} index={index} />
+          ))}
         </div>
 
-        {/* CTA */}
-        <div className="text-center mt-12">
-          <Link href="/courses">
-            <Button variant="outline" className="rounded-full group bg-transparent transition-all duration-300 hover:scale-105 hover:bg-primary/10">
-              View All Courses
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
-          </Link>
-        </div>
+        {/* CTA - hide on courses page when showing all */}
+        {!showAll && (
+          <div className="text-center mt-12">
+            <Link href="/courses">
+              <Button variant="outline" className="rounded-full group bg-transparent transition-all duration-300 hover:scale-105 hover:bg-primary/10">
+                View All Courses
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
+          </div>
+        )}
+        </>
+        )}
       </div>
     </section>
   )

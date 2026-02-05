@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
+import { CategorySelection } from "./category-selection"
 import { ServiceSelection } from "./service-selection"
 import { StylistSelection } from "./stylist-selection"
 import { DateTimeSelection } from "./date-time-selection"
@@ -10,6 +11,7 @@ import { BookingConfirmation } from "./booking-confirmation"
 import { BookingProgress } from "./booking-progress"
 
 export type BookingData = {
+  selectedCategoryId: string | null
   services: {
     id: string
     name: string
@@ -37,36 +39,43 @@ export type BookingData = {
 }
 
 const steps = [
-  { id: 1, name: "Services", description: "Choose your services" },
-  { id: 2, name: "Stylist", description: "Select your stylist" },
-  { id: 3, name: "Date & Time", description: "Pick a time" },
-  { id: 4, name: "Details", description: "Your information" },
-  { id: 5, name: "Confirm", description: "Review & book" },
+  { id: 1, name: "Category", description: "Choose category" },
+  { id: 2, name: "Services", description: "Choose services" },
+  { id: 3, name: "Stylist", description: "Select stylist" },
+  { id: 4, name: "Date & Time", description: "Pick a time" },
+  { id: 5, name: "Details", description: "Your information" },
+  { id: 6, name: "Confirm", description: "Review & book" },
 ]
 
 export function BookingWizard() {
   const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState(1)
   const [bookingData, setBookingData] = useState<BookingData>({
+    selectedCategoryId: null,
     services: [],
     stylist: null,
     dateTime: { date: null, time: null },
     client: { firstName: "", lastName: "", email: "", phone: "", notes: "" },
   })
 
-  // Pre-select service category from URL params
   useEffect(() => {
     const serviceParam = searchParams.get("service")
     if (serviceParam) {
-      // Could pre-filter services based on category
+      setBookingData((prev) => ({ ...prev, selectedCategoryId: serviceParam }))
     }
   }, [searchParams])
 
   const updateBookingData = (data: Partial<BookingData>) => {
-    setBookingData((prev) => ({ ...prev, ...data }))
+    setBookingData((prev) => {
+      const next = { ...prev, ...data }
+      if (data.selectedCategoryId !== undefined && data.selectedCategoryId !== prev.selectedCategoryId) {
+        next.services = []
+      }
+      return next
+    })
   }
 
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 5))
+  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 6))
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1))
   const goToStep = (step: number) => {
     if (step < currentStep) setCurrentStep(step)
@@ -88,40 +97,62 @@ export function BookingWizard() {
 
         {/* Step Content */}
         <div className="mt-10 lg:mt-12">
-          {currentStep === 1 && (
-            <ServiceSelection
-              selectedServices={bookingData.services}
-              onSelect={(services) => updateBookingData({ services })}
-              onNext={nextStep}
-            />
+          {currentStep === 6 ? (
+            <BookingConfirmation bookingData={bookingData} onBack={prevStep} onEdit={goToStep} />
+          ) : (
+            <div className="rounded-2xl border border-border bg-card/50 p-6 sm:p-8 lg:p-10">
+              {currentStep === 1 && (
+                <CategorySelection
+                  selectedCategoryId={bookingData.selectedCategoryId}
+                  onSelect={(categoryId) => updateBookingData({ selectedCategoryId: categoryId })}
+                  onNext={nextStep}
+                />
+              )}
+              {currentStep === 2 && (
+                bookingData.selectedCategoryId ? (
+                  <ServiceSelection
+                    selectedCategoryId={bookingData.selectedCategoryId}
+                    selectedServices={bookingData.services}
+                    onSelect={(services) => updateBookingData({ services })}
+                    onNext={nextStep}
+                    onBack={prevStep}
+                  />
+                ) : (
+                  <CategorySelection
+                    selectedCategoryId={bookingData.selectedCategoryId}
+                    onSelect={(categoryId) => updateBookingData({ selectedCategoryId: categoryId })}
+                    onNext={nextStep}
+                  />
+                )
+              )}
+              {currentStep === 3 && (
+                <StylistSelection
+                  selectedStylist={bookingData.stylist}
+                  serviceCategory={bookingData.selectedCategoryId || bookingData.services?.[0]?.category || ""}
+                  onSelect={(stylist) => updateBookingData({ stylist })}
+                  onNext={nextStep}
+                  onBack={prevStep}
+                />
+              )}
+              {currentStep === 4 && (
+                <DateTimeSelection
+                  selectedDateTime={bookingData.dateTime}
+                  stylistId={bookingData.stylist?.id || ""}
+                  onSelect={(dateTime) => updateBookingData({ dateTime })}
+                  onNext={nextStep}
+                  onBack={prevStep}
+                />
+              )}
+              {currentStep === 5 && (
+                <ClientDetails
+                  clientData={bookingData.client}
+                  onUpdate={(client) => updateBookingData({ client })}
+                  onNext={nextStep}
+                  onBack={prevStep}
+                />
+              )}
+            </div>
           )}
-          {currentStep === 2 && (
-            <StylistSelection
-              selectedStylist={bookingData.stylist}
-              serviceCategory={bookingData.services?.[0]?.category || ""}
-              onSelect={(stylist) => updateBookingData({ stylist })}
-              onNext={nextStep}
-              onBack={prevStep}
-            />
-          )}
-          {currentStep === 3 && (
-            <DateTimeSelection
-              selectedDateTime={bookingData.dateTime}
-              stylistId={bookingData.stylist?.id || ""}
-              onSelect={(dateTime) => updateBookingData({ dateTime })}
-              onNext={nextStep}
-              onBack={prevStep}
-            />
-          )}
-          {currentStep === 4 && (
-            <ClientDetails
-              clientData={bookingData.client}
-              onUpdate={(client) => updateBookingData({ client })}
-              onNext={nextStep}
-              onBack={prevStep}
-            />
-          )}
-          {currentStep === 5 && <BookingConfirmation bookingData={bookingData} onBack={prevStep} onEdit={goToStep} />}
         </div>
       </div>
     </div>

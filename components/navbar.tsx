@@ -10,7 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/services", label: "Services" },
+  { href: "/courses", label: "Courses" },
   { href: "/booking", label: "Booking" },
   { href: "/shop", label: "Shop" },
   { href: "/gallery", label: "Gallery" },
@@ -60,7 +60,7 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group/logo">
             <span className="font-serif text-2xl font-medium tracking-tight text-foreground transition-transform duration-300 group-hover/logo:scale-105">
-              Luxe Beauty & Training
+              Luxe Beauty & Training Academy
             </span>
           </Link>
 

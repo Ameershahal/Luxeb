@@ -14,7 +14,7 @@ export default function CoursesPage() {
     <main className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-20">
-        <CoursesSection />
+        <CoursesSection showAll />
       </div>
       <Footer />
       <MobileBottomNav />

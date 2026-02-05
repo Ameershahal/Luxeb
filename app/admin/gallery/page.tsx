@@ -414,77 +414,73 @@ export default function AdminGallery() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image">Image URL *</Label>
-              <Input
-                id="image"
-                placeholder="/gallery-image.jpg or https://..."
-                value={formData.image}
-                onChange={(e) => {
-                  setFormData({ ...formData, image: e.target.value })
-                  setPreviewImage(e.target.value)
-                }}
-                required
-              />
-            </div>
-
-            <div className="border-2 border-dashed border-border rounded-lg p-6">
-              <div className="text-center space-y-4">
-                {previewImage ? (
-                  <div className="relative">
-                    <img
-                      src={previewImage}
-                      alt="Preview"
-                      className="max-h-48 mx-auto rounded-lg object-contain"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-2 right-2"
-                      onClick={() => {
-                        setPreviewImage(null)
-                        setFormData({ ...formData, image: "" })
-                        if (fileInputRef.current) fileInputRef.current.value = ""
-                      }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Upload an image file</p>
-                  </>
-                )}
-                <div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    id="file-upload"
+              <Label htmlFor="image">
+                Image URL or upload to Cloudinary <span className="text-destructive">*</span>
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Paste a URL or upload an image (stored on Cloudinary).
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                <Input
+                  id="image"
+                  placeholder="/gallery-image.jpg or https://..."
+                  value={formData.image}
+                  onChange={(e) => {
+                    setFormData({ ...formData, image: e.target.value })
+                    setPreviewImage(e.target.value)
+                  }}
+                  required
+                  className="flex-1 min-w-[200px]"
+                />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading…
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload to Cloudinary
+                    </>
+                  )}
+                </Button>
+              </div>
+              {previewImage ? (
+                <div className="relative inline-block mt-2">
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="max-h-40 rounded-lg border border-border object-contain"
                   />
                   <Button
                     type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-1 right-1 h-7 w-7"
+                    onClick={() => {
+                      setPreviewImage(null)
+                      setFormData({ ...formData, image: "" })
+                      if (fileInputRef.current) fileInputRef.current.value = ""
+                    }}
                   >
-                    {isUploading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Choose File
-                      </>
-                    )}
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
+              ) : null}
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
