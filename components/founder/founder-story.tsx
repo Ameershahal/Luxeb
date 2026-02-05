@@ -13,7 +13,7 @@ export function FounderStory() {
             "True beauty is not about perfection—it's about the confidence that radiates when a woman feels
             authentically herself."
           </blockquote>
-          <cite className="block mt-6 text-muted-foreground not-italic">— Ionela</cite>
+          <cite className="block mt-6 text-muted-foreground not-italic">— Ioana Andreiana</cite>
         </div>
 
         {/* Story */}
@@ -22,9 +22,9 @@ export function FounderStory() {
             <div>
               <h2 className="font-serif text-2xl font-medium text-foreground mb-4">The Beginning</h2>
               <p className="text-muted-foreground leading-relaxed mb-6">
-                Ionela's journey into the world of beauty began in her grandmother's salon—a
+                Ioana Andreiana's journey into the world of beauty began in her grandmother's salon—a
                 modest establishment that nonetheless attracted the most discerning clientele in the region. It was
-                there, watching her grandmother transform not just appearances but spirits, that Ionela discovered her
+                there, watching her grandmother transform not just appearances but spirits, that Ioana Andreiana discovered her
                 calling.
               </p>
               <p className="text-muted-foreground leading-relaxed">
@@ -36,7 +36,7 @@ export function FounderStory() {
             <div>
               <h2 className="font-serif text-2xl font-medium text-foreground mb-4">The Vision</h2>
               <p className="text-muted-foreground leading-relaxed mb-6">
-                In 2018, Ionela returned to New York with a vision: to create a beauty destination that would honor
+                In 2018, Ioana Andreiana returned to New York with a vision: to create a beauty destination that would honor
                 the intimate, transformative experience of her grandmother's salon while embracing the innovation and
                 luxury she had witnessed in the fashion world.
               </p>

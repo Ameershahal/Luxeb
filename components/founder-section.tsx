@@ -18,7 +18,7 @@ export function FounderSection() {
             <div className="relative aspect-[3/4] rounded-xl sm:rounded-2xl overflow-hidden group/image">
               <img
                 src="/founder.jpeg"
-                alt="Ionela, Founder of Luxe Beauty & Training"
+                alt="Ioana Andreiana, Founder of Luxe Beauty & Training"
                 className="h-full w-full object-cover transition-transform duration-700 group-hover/image:scale-105"
               />
             </div>
@@ -40,7 +40,7 @@ export function FounderSection() {
             </div>
 
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-3 sm:mb-4">
-              With over 15 years of experience in the beauty industry, Ionela founded Luxe Beauty & Training with a
+              With over 15 years of experience in the beauty industry, Ioana Andreiana founded Luxe Beauty & Training with a
               singular vision: to create a sanctuary where artistry meets luxury. Her background in fine arts and her
               passion for beauty converge in every service we offer.
             </p>
@@ -52,7 +52,7 @@ export function FounderSection() {
 
             <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
               <div>
-                <p className="font-serif text-xl sm:text-2xl font-medium text-foreground">Ionela</p>
+                <p className="font-serif text-xl sm:text-2xl font-medium text-foreground">Ioana Andreiana</p>
                 <p className="text-xs sm:text-sm text-muted-foreground">Founder & Creative Director</p>
               </div>
             </div>

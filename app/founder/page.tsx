@@ -8,7 +8,7 @@ import { BookingCtaSection } from "@/components/booking-cta-section"
 
 export const metadata = {
   title: "Meet the Founder | Luxe Beauty & Training",
-  description: "Discover the story behind Luxe Beauty & Training and meet Ionela, our founder and creative director.",
+  description: "Discover the story behind Luxe Beauty & Training and meet Ioana Andreiana, our founder and creative director.",
 }
 
 export default function FounderPage() {

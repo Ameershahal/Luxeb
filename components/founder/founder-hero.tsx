@@ -10,7 +10,7 @@ export function FounderHero() {
             <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
               <img
                 src="/founder.jpeg"
-                alt="Ionela, Founder of Luxe Beauty & Training"
+                alt="Ioana Andreiana, Founder of Luxe Beauty & Training"
                 className="h-full w-full object-cover"
               />
             </div>
@@ -23,11 +23,11 @@ export function FounderHero() {
           <div className="order-1 lg:order-2">
             <p className="text-sm font-medium uppercase tracking-[0.3em] text-primary mb-4">The Visionary</p>
             <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-foreground mb-6 text-balance">
-              <span className="italic">Ionela</span>
+              <span className="italic">Ioana Andreiana</span>
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed mb-4">Founder & Creative Director</p>
             <p className="text-muted-foreground leading-relaxed">
-              With an eye for beauty refined through years in the fashion capitals of the world, Ionela has
+              With an eye for beauty refined through years in the fashion capitals of the world, Ioana Andreiana has
               transformed her passion into Luxe Beauty & Training—a sanctuary where artistry meets luxury, and every client
               becomes a canvas for self-expression.
             </p>

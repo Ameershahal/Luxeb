@@ -9,25 +9,25 @@ const founderPhotos = [
   {
     id: 1,
     src: "/founder2.jpeg",
-    alt: "Ionela - Founder of Luxe Beauty & Training",
-    caption: "Ionela, Founder & Creative Director",
+    alt: "Ioana Andreiana - Founder of Luxe Beauty & Training",
+    caption: "Ioana Andreiana, Founder & Creative Director",
   },
   {
     id: 2,
     src: "/founder3.jpeg",
-    alt: "Ionela at work",
+    alt: "Ioana Andreiana at work",
     caption: "Creating beauty with passion",
   },
   {
     id: 3,
     src: "/founder4.jpeg",
-    alt: "Ionela - Professional portrait",
+    alt: "Ioana Andreiana - Professional portrait",
     caption: "The art of beauty and excellence",
   },
   {
     id: 4,
     src: "/founder-4.jpg", // Add your photos here
-    alt: "Ionela in studio",
+    alt: "Ioana Andreiana in studio",
     caption: "Our beautiful studio space",
   },
 ]
@@ -77,7 +77,7 @@ export function FounderPhotosSection() {
               The Vision Behind <span className="italic">Luxe Beauty & Training Academy</span>
             </h2>
             <p className="mt-4 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-              Get to know Ionela, the creative force behind our luxury beauty studio
+              Get to know Ioana Andreiana, the creative force behind our luxury beauty studio
             </p>
           </div>
 
