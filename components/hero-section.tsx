@@ -1,23 +1,24 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 
 export function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Background Video with Overlay */}
+      {/* Background Image with Overlay */}
       <div className="absolute inset-0 overflow-hidden">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="h-full w-full object-cover object-center lg:scale-[1.07] lg:origin-top"
-        >
-          <source src="/1768208586874.mp4" type="video/mp4" />
-        </video>
+        <Image
+          src="/homeima.jpeg"
+          alt="Luxe Beauty & Training Academy"
+          fill
+          priority
+          quality={90}
+          className="object-cover object-center lg:scale-[1.07] lg:origin-top"
+          sizes="100vw"
+        />
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-transparent" />
       </div>
 
