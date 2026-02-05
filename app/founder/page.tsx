@@ -3,7 +3,6 @@ import { Footer } from "@/components/footer"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { FounderHero } from "@/components/founder/founder-hero"
 import { FounderStory } from "@/components/founder/founder-story"
-import { FounderPhilosophy } from "@/components/founder/founder-philosophy"
 import { BookingCtaSection } from "@/components/booking-cta-section"
 
 export const metadata = {

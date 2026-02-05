@@ -28,7 +28,7 @@ const testimonials = [
     id: 3,
     name: "Sophie L.",
     location: "London",
-    image: "/placeholder.svg",
+    image: "/victoria-s.png",
     rating: 5,
     text: "From my first visit I knew this was something special. The team is incredibly skilled and the atmosphere is so relaxing. I've recommended Luxe Beauty to all my friends.",
     service: "Nail Artistry",
