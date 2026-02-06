@@ -78,16 +78,22 @@ export function Footer() {
               {services.length === 0 ? (
                 <li className="text-sm text-secondary-foreground/70">Loading…</li>
               ) : (
-                services.map((service) => (
-                  <li key={service.id}>
-                    <Link
-                      href={`/booking?service=${encodeURIComponent(service.category)}`}
-                      className="text-sm text-secondary-foreground/70 hover:text-secondary-foreground transition-colors"
-                    >
-                      {service.name}
-                    </Link>
-                  </li>
-                ))
+                services
+                  .filter((service) => service.name !== "Nail Extension - Gel ( M )" && service.name !== "Nail Extension - Gel ( S )" && service.name !== "Nail Extension - Gel ( XL )" && service.name !== "Refill ( M )" && service.name !== "Refill ( S )" && service.name !== "Refill ( XL )")
+                  .map((service) => (
+                    <li key={service.id}>
+                      <Link
+                        href={`/booking?service=${encodeURIComponent(service.category)}`}
+                        className="text-sm text-secondary-foreground/70 hover:text-secondary-foreground transition-colors"
+                      >
+                        {service.name === "Nail Extension - Gel ( L )"
+                          ? "Nail Extension - Gel"
+                          : service.name === "Refill ( L )"
+                            ? "Refill"
+                            : service.name}
+                      </Link>
+                    </li>
+                  ))
               )}
             </ul>
           </div>

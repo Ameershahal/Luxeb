@@ -18,6 +18,7 @@ export type BookingData = {
     category: string
     duration: number
     price: number
+    size?: string
   }[]
   stylist: {
     id: string

@@ -131,6 +131,7 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
                     {bookingData.services?.map((s) => (
                       <li key={s.id} className="font-medium text-foreground">
                         {s.name}
+                        {s.size && <span className="text-foreground font-normal"> ({s.size})</span>}
                         <span className="text-muted-foreground font-normal text-sm ml-1">
                           {s.duration} min • £{s.price}
                         </span>

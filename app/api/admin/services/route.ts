@@ -20,11 +20,28 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB()
     const body = await request.json()
-    const { name, category, duration, price, description, isActive } = body
+    const { name, category, duration, price, description, isActive, sizes } = body
 
-    if (!name || !category || !duration || price === undefined) {
+    if (!name || !category || !duration) {
       return NextResponse.json(
-        { success: false, error: 'Name, category, duration, and price are required' },
+        { success: false, error: 'Name, category, and duration are required' },
+        { status: 400 }
+      )
+    }
+
+    const sanitizedSizes = Array.isArray(sizes) && sizes.length > 0
+      ? sizes
+          .filter((s: any) => s && ['S', 'M', 'L', 'XL'].includes(s.size) && typeof s.price === 'number')
+          .map((s: any) => ({ size: s.size, price: Number(s.price) }))
+      : undefined
+
+    const hasSizes = sanitizedSizes && sanitizedSizes.length > 0
+    const resolvedPrice = hasSizes
+      ? (price !== undefined && price !== '' ? parseFloat(price) : Math.min(...sanitizedSizes.map((s: any) => s.price)))
+      : parseFloat(price)
+    if (!hasSizes && (price === undefined || price === '')) {
+      return NextResponse.json(
+        { success: false, error: 'Price is required when no size prices are set' },
         { status: 400 }
       )
     }
@@ -33,9 +50,10 @@ export async function POST(request: NextRequest) {
       name,
       category,
       duration: parseInt(duration),
-      price: parseFloat(price),
+      price: resolvedPrice,
       description: description || '',
       isActive: isActive !== undefined ? isActive : true,
+      ...(hasSizes && { sizes: sanitizedSizes }),
     })
 
     return NextResponse.json({ success: true, service }, { status: 201 })

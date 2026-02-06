@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, ArrowLeft, Clock, Check, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+type ServiceSize = { size: string; price: number }
+
 type Service = {
   id: string
   name: string
@@ -12,12 +14,23 @@ type Service = {
   duration: number
   price: number
   description: string
+  sizes?: ServiceSize[]
+}
+
+/** Selected service with resolved price (and optional size when service has sizes). */
+export type SelectedService = {
+  id: string
+  name: string
+  category: string
+  duration: number
+  price: number
+  size?: string
 }
 
 type ServiceSelectionProps = {
   selectedCategoryId: string
-  selectedServices: Service[]
-  onSelect: (services: Service[]) => void
+  selectedServices: SelectedService[]
+  onSelect: (services: SelectedService[]) => void
   onNext: () => void
   onBack: () => void
 }
@@ -54,13 +67,41 @@ export function ServiceSelection({
 
   const filteredServices = services.filter((s) => s.category === selectedCategoryId)
 
-  const toggleService = (service: Service) => {
+  const resolveSelectedService = (service: Service, size?: string): SelectedService => {
+    const hasSizes = service.sizes && service.sizes.length > 0
+    const sizeOption = hasSizes && size ? service.sizes!.find((s) => s.size === size) : null
+    const price = sizeOption ? sizeOption.price : service.price
+    return {
+      id: service.id,
+      name: service.name,
+      category: service.category,
+      duration: service.duration,
+      price,
+      ...(size && { size }),
+    }
+  }
+
+  const toggleService = (service: Service, chosenSize?: string) => {
     const isSelected = selectedServices.some((s) => s.id === service.id)
     if (isSelected) {
       onSelect(selectedServices.filter((s) => s.id !== service.id))
-    } else {
-      onSelect([...selectedServices, service])
+      return
     }
+    const hasSizes = service.sizes && service.sizes.length > 0
+    const size = hasSizes ? (chosenSize || service.sizes![0].size) : undefined
+    const newEntry = resolveSelectedService(service, size)
+    onSelect([...selectedServices, newEntry])
+  }
+
+  const setSelectedServiceSize = (serviceId: string, size: string) => {
+    const service = services.find((s) => s.id === serviceId)
+    if (!service || !service.sizes?.length) return
+    const option = service.sizes.find((s) => s.size === size)
+    if (!option) return
+    const updated = selectedServices.map((s) =>
+      s.id === serviceId ? { ...s, size, price: option.price } : s
+    )
+    onSelect(updated)
   }
 
   if (isLoading) {
@@ -86,10 +127,18 @@ export function ServiceSelection({
         <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
           {filteredServices.map((service) => {
             const isSelected = selectedServices.some((s) => s.id === service.id)
+            const selectedEntry = selectedServices.find((s) => s.id === service.id)
+            const hasSizes = service.sizes && service.sizes.length > 0
+            const displayPrice = hasSizes
+              ? isSelected && selectedEntry?.price != null
+                ? selectedEntry.price
+                : Math.min(...service.sizes!.map((s) => s.price))
+              : service.price
+            const priceLabel = hasSizes && !isSelected ? `From £${displayPrice}` : `£${displayPrice}`
+
             return (
-              <button
+              <div
                 key={service.id}
-                onClick={() => toggleService(service)}
                 className={cn(
                   "relative p-4 sm:p-5 rounded-xl text-left transition-all duration-300 border-2 min-h-[120px]",
                   isSelected
@@ -97,23 +146,53 @@ export function ServiceSelection({
                     : "border-border bg-card hover:border-primary/50 hover:shadow-md",
                 )}
               >
+                <button
+                  type="button"
+                  className="absolute inset-0 rounded-xl text-left z-0"
+                  onClick={() => toggleService(service)}
+                  aria-pressed={isSelected}
+                />
                 {isSelected && (
-                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-primary flex items-center justify-center">
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-primary flex items-center justify-center z-10">
                     <Check className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
                   </div>
                 )}
 
-                <h3 className="font-medium text-sm sm:text-base text-foreground mb-1 pr-6 sm:pr-8">{service.name}</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">{service.description}</p>
+                <h3 className="font-medium text-sm sm:text-base text-foreground mb-1 pr-6 sm:pr-8 relative z-10">{service.name}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2 relative z-10">{service.description}</p>
 
-                <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                <div className="flex items-center gap-3 sm:gap-4 flex-wrap relative z-10">
                   <span className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                     <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                     {typeof service.duration === 'number' ? `${service.duration} min` : service.duration}
                   </span>
-                  <span className="text-primary font-semibold text-sm sm:text-base">£{service.price}</span>
+                  <span className="text-primary font-semibold text-sm sm:text-base">{priceLabel}</span>
                 </div>
-              </button>
+
+                {isSelected && hasSizes && (
+                  <div className="mt-3 flex flex-wrap gap-2 relative z-10" onClick={(e) => e.stopPropagation()}>
+                    {service.sizes!.map((opt) => (
+                      <button
+                        key={opt.size}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setSelectedServiceSize(service.id, opt.size)
+                        }}
+                        className={cn(
+                          "px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                          selectedEntry?.size === opt.size
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted hover:bg-muted/80 text-foreground"
+                        )}
+                      >
+                        {opt.size} — £{opt.price}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )
           })}
         </div>

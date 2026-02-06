@@ -60,6 +60,11 @@ interface Stylist {
   availableTimes?: AvailableTime[]
 }
 
+interface ServiceSize {
+  size: 'S' | 'M' | 'L' | 'XL'
+  price: number
+}
+
 interface Service {
   _id: string
   name: string
@@ -68,6 +73,7 @@ interface Service {
   price: number
   description: string
   isActive: boolean
+  sizes?: ServiceSize[]
 }
 
 interface Category {
@@ -135,6 +141,7 @@ export default function AdminBookings() {
     price: "",
     description: "",
     isActive: true,
+    sizes: [] as ServiceSize[],
   })
 
   // Category form state
@@ -525,6 +532,17 @@ export default function AdminBookings() {
 
   const handleServiceSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const hasSizePrices = serviceFormData.sizes && serviceFormData.sizes.length > 0
+    const hasNormalPrice = serviceFormData.price !== '' && !Number.isNaN(parseFloat(serviceFormData.price))
+    if (!hasSizePrices && !hasNormalPrice) {
+      toast({
+        title: "Error",
+        description: "Enter either a price or at least one size price (S, M, L, XL).",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsServiceSubmitting(true)
 
     try {
@@ -546,14 +564,21 @@ export default function AdminBookings() {
       
       const method = isUpdate ? "PUT" : "POST"
 
+      const payload: Record<string, unknown> = {
+        ...serviceFormData,
+        duration: parseInt(serviceFormData.duration),
+        sizes: serviceFormData.sizes && serviceFormData.sizes.length > 0 ? serviceFormData.sizes : [],
+      }
+      if (hasNormalPrice) {
+        payload.price = parseFloat(serviceFormData.price)
+      } else if (!hasSizePrices) {
+        payload.price = 0
+      }
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...serviceFormData,
-          duration: parseInt(serviceFormData.duration),
-          price: parseFloat(serviceFormData.price),
-        }),
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()
@@ -634,6 +659,7 @@ export default function AdminBookings() {
         price: service.price.toString(),
         description: service.description || "",
         isActive: service.isActive,
+        sizes: (service.sizes && service.sizes.length > 0 ? service.sizes : []) as ServiceSize[],
       })
     } else {
       setSelectedService(null)
@@ -645,6 +671,7 @@ export default function AdminBookings() {
         price: "",
         description: "",
         isActive: true,
+        sizes: [],
       })
     }
     setIsServiceDialogOpen(true)
@@ -659,8 +686,23 @@ export default function AdminBookings() {
       price: "",
       description: "",
       isActive: true,
+      sizes: [],
     })
   }
+
+  const SIZE_LABELS: ServiceSize['size'][] = ['S', 'M', 'L', 'XL']
+
+  const setServiceSizePrice = (size: ServiceSize['size'], value: number | '') => {
+    const next = serviceFormData.sizes.filter((s) => s.size !== size)
+    if (typeof value === 'number' && !Number.isNaN(value)) {
+      next.push({ size, price: value })
+      next.sort((a, b) => SIZE_LABELS.indexOf(a.size) - SIZE_LABELS.indexOf(b.size))
+    }
+    setServiceFormData({ ...serviceFormData, sizes: next })
+  }
+
+  const getServiceSizePrice = (size: ServiceSize['size']) =>
+    serviceFormData.sizes.find((s) => s.size === size)?.price ?? ''
 
   const handleSeedServices = async () => {
     setIsSeedingServices(true)
@@ -1152,7 +1194,11 @@ export default function AdminBookings() {
                               <span>{service.duration} min</span>
                             </div>
                           </TableCell>
-                          <TableCell className="font-medium">£{service.price}</TableCell>
+                          <TableCell className="font-medium">
+                            {service.sizes && service.sizes.length > 0
+                              ? `S/M/L/XL from £${Math.min(...service.sizes.map((s) => s.price))}`
+                              : `£${service.price}`}
+                          </TableCell>
                           <TableCell>
                             <span
                               className={`text-xs px-2 py-1 rounded-full ${
@@ -1860,7 +1906,9 @@ export default function AdminBookings() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="service-price">Price (£) *</Label>
+                <Label htmlFor="service-price">
+                  Price (£) {serviceFormData.sizes?.length ? "(optional when size prices are set)" : "*"}
+                </Label>
                 <Input
                   id="service-price"
                   type="number"
@@ -1870,8 +1918,39 @@ export default function AdminBookings() {
                   onChange={(e) =>
                     setServiceFormData({ ...serviceFormData, price: e.target.value })
                   }
-                  required
+                  required={!serviceFormData.sizes?.length}
+                  placeholder={serviceFormData.sizes?.length ? "Leave empty if using only sizes" : undefined}
                 />
+                <p className="text-xs text-muted-foreground">
+                  {serviceFormData.sizes?.length
+                    ? "Leave empty if this service only has S/M/L/XL prices."
+                    : "Base price when no size options are used."}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Size options (optional)</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Add prices for S, M, L, XL. If set, clients will choose a size and see the corresponding price.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {SIZE_LABELS.map((size) => (
+                  <div key={size} className="space-y-1">
+                    <Label className="text-xs">Size {size}</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="£"
+                      value={getServiceSizePrice(size)}
+                      onChange={(e) => {
+                        const v = e.target.value
+                        setServiceSizePrice(size, v === '' ? '' : parseFloat(v))
+                      }}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
 

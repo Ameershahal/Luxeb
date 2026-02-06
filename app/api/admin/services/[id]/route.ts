@@ -36,18 +36,47 @@ export async function PUT(
     await connectDB()
     const { id } = await params
     const body = await request.json()
-    const { name, category, duration, price, description, isActive } = body
+    const { name, category, duration, price, description, isActive, sizes } = body
+
+    let sanitizedSizes: { size: string; price: number }[] | undefined
+    if (Array.isArray(sizes)) {
+      if (sizes.length === 0) {
+        sanitizedSizes = undefined
+      } else {
+        const list = sizes
+          .filter((s: any) => s && ['S', 'M', 'L', 'XL'].includes(s.size) && typeof s.price === 'number')
+          .map((s: any) => ({ size: s.size, price: Number(s.price) }))
+        if (list.length > 0) sanitizedSizes = list
+      }
+    }
+
+    const hasSizes = sanitizedSizes && sanitizedSizes.length > 0
+    const resolvedPrice =
+      price !== undefined && price !== ''
+        ? parseFloat(price)
+        : hasSizes
+          ? Math.min(...sanitizedSizes!.map((s) => s.price))
+          : undefined
+
+    const update: Record<string, unknown> = {
+      ...(name && { name }),
+      ...(category && { category }),
+      ...(duration !== undefined && { duration: parseInt(duration) }),
+      ...(description !== undefined && { description }),
+      ...(isActive !== undefined && { isActive }),
+    }
+    if (resolvedPrice !== undefined) update.price = resolvedPrice
+    if (Array.isArray(sizes)) {
+      if (sizes.length === 0) {
+        update.sizes = undefined
+      } else if (sanitizedSizes && sanitizedSizes.length > 0) {
+        update.sizes = sanitizedSizes
+      }
+    }
 
     const service = await Service.findByIdAndUpdate(
       id,
-      {
-        ...(name && { name }),
-        ...(category && { category }),
-        ...(duration !== undefined && { duration: parseInt(duration) }),
-        ...(price !== undefined && { price: parseFloat(price) }),
-        ...(description !== undefined && { description }),
-        ...(isActive !== undefined && { isActive }),
-      },
+      update,
       { new: true, runValidators: true }
     )
 

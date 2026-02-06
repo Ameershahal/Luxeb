@@ -1,5 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
+export type ServiceSizeOption = 'S' | 'M' | 'L' | 'XL'
+
+export interface IServiceSize {
+  size: ServiceSizeOption
+  price: number
+}
+
 export interface IService extends Document {
   name: string
   category: string
@@ -7,9 +14,16 @@ export interface IService extends Document {
   price: number
   description: string
   isActive: boolean
+  /** Optional size-based pricing. If set, client picks a size and price comes from here. */
+  sizes?: IServiceSize[]
   createdAt: Date
   updatedAt: Date
 }
+
+const ServiceSizeSchema = new Schema<IServiceSize>(
+  { size: { type: String, required: true, enum: ['S', 'M', 'L', 'XL'] }, price: { type: Number, required: true, min: 0 } },
+  { _id: false }
+)
 
 const ServiceSchema = new Schema<IService>(
   {
@@ -22,6 +36,7 @@ const ServiceSchema = new Schema<IService>(
     price: { type: Number, required: true, min: 0 },
     description: { type: String, default: '' },
     isActive: { type: Boolean, default: true },
+    sizes: { type: [ServiceSizeSchema], default: undefined },
   },
   {
     timestamps: true,

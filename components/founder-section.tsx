@@ -40,7 +40,7 @@ export function FounderSection() {
             </div>
 
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-3 sm:mb-4">
-              With over 15 years of experience in the beauty industry, Ioana Andreiana founded Luxe Beauty & Training with a
+              With over 10 years of experience in the beauty industry, Ioana Andreiana founded Luxe Beauty & Training with a
               singular vision: to create a sanctuary where artistry meets luxury. Her background in fine arts and her
               passion for beauty converge in every service we offer.
             </p>

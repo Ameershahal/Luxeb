@@ -83,7 +83,8 @@ export function FounderPhotosSection() {
 
           {/* Photo Grid */}
           {availablePhotos.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 lg:max-w-5xl xl:max-w-6xl lg:mx-auto">
+            <div className="flex justify-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full max-w-5xl">
               {availablePhotos.map((photo, index) => {
                 const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
                 return (
@@ -114,6 +115,7 @@ export function FounderPhotosSection() {
                   </div>
                 )
               })}
+              </div>
             </div>
           ) : (
             <div className="text-center py-12">

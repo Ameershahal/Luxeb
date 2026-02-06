@@ -15,6 +15,7 @@ export interface IBooking extends Document {
     category: string
     duration: number
     price: number
+    size?: string
   }[]
   stylist: {
     id: string
@@ -61,6 +62,7 @@ const BookingSchema = new Schema<IBooking>(
       category: { type: String, required: true },
       duration: { type: Number, required: true },
       price: { type: Number, required: true },
+      size: { type: String },
     }],
     stylist: {
       id: { type: String },
