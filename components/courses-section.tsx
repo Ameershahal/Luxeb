@@ -20,6 +20,7 @@ type Course = {
   reviews: number
   image: string
   featured: boolean
+  enrollmentCount?: number | null
   startDates?: string[]
 }
 
@@ -132,6 +133,14 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
             <Users className="h-4 w-4" />
             <span>{course.students}</span>
           </div>
+          {typeof course.enrollmentCount === "number" && course.enrollmentCount > 0 && (
+            <div className="mt-1">
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <Users className="h-3 w-3" />
+                <span>{course.enrollmentCount}+ students enrolled</span>
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Start Date Selection */}

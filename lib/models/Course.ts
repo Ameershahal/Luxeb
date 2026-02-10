@@ -12,6 +12,8 @@ export interface ICourse extends Document {
   rating?: number
   reviews?: number
   isActive: boolean
+  /** Optional marketing count: how many people enrolled */
+  enrollmentCount?: number
   /** Optional start dates (ISO date strings) so students can pick a comfortable date */
   startDates?: string[]
   createdAt: Date
@@ -31,6 +33,7 @@ const CourseSchema = new Schema<ICourse>(
     rating: { type: Number },
     reviews: { type: Number },
     isActive: { type: Boolean, default: true },
+    enrollmentCount: { type: Number, default: undefined },
     startDates: { type: [String], default: undefined },
   },
   { timestamps: true }

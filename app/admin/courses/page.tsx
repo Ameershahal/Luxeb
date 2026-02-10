@@ -28,6 +28,7 @@ type CourseRow = {
   location?: string
   image?: string
   startDates?: string[]
+  enrollmentCount?: number | null
 }
 
 export default function AdminCourses() {
@@ -50,6 +51,7 @@ export default function AdminCourses() {
     description: "",
     image: "",
     startDates: [] as string[],
+     enrollmentCount: "",
   })
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,6 +104,7 @@ export default function AdminCourses() {
       description: "",
       image: "",
       startDates: [],
+      enrollmentCount: "",
     })
     fileInputRef.current && (fileInputRef.current.value = "")
   }
@@ -113,6 +116,15 @@ export default function AdminCourses() {
       const data = await res.json()
       if (data.success && Array.isArray(data.courses)) {
         const mappedCourses = data.courses.map((c: any) => {
+          // Be defensive about enrollmentCount type (handle numbers or strings)
+          let enrollmentCount: number | null = null
+          if (c.enrollmentCount !== undefined && c.enrollmentCount !== null) {
+            const parsed = Number(c.enrollmentCount)
+            if (!Number.isNaN(parsed) && parsed >= 0) {
+              enrollmentCount = parsed
+            }
+          }
+
           const courseData = {
             id: c.id || c._id,
             title: c.title,
@@ -124,6 +136,7 @@ export default function AdminCourses() {
             location: c.location || "",
             image: c.image || "",
             startDates: Array.isArray(c.startDates) ? c.startDates : [],
+            enrollmentCount,
           }
           // Debug: Log courses with dates
           if (courseData.startDates && courseData.startDates.length > 0) {
@@ -219,6 +232,7 @@ export default function AdminCourses() {
                     maxStudents: formData.maxStudents,
                     image: formData.image,
                     startDates: validDates,
+                    enrollmentCount: formData.enrollmentCount,
                   }
                   
                   const res = await fetch(url, {
@@ -319,6 +333,20 @@ export default function AdminCourses() {
                     onChange={(e) => setFormData({ ...formData, maxStudents: e.target.value })}
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="enrollmentCount">Enrolled count (for display)</Label>
+                <Input
+                  id="enrollmentCount"
+                  type="number"
+                  min={0}
+                  placeholder="e.g., 120"
+                  value={formData.enrollmentCount}
+                  onChange={(e) => setFormData({ ...formData, enrollmentCount: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Optional. Shown on the course card as “120+ students enrolled”.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label>Start dates (optional)</Label>
@@ -568,6 +596,7 @@ export default function AdminCourses() {
                               description: course.description || "",
                               image: course.image || "",
                               startDates: dates, // Use dates as-is from database
+                              enrollmentCount: course.enrollmentCount != null ? String(course.enrollmentCount) : "",
                             })
                             setIsDialogOpen(true)
                           }}

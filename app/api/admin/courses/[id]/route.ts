@@ -21,6 +21,7 @@ export async function PUT(
       image,
       featured,
       isActive,
+      enrollmentCount,
       startDates,
     } = body
 
@@ -34,6 +35,17 @@ export async function PUT(
     if (image !== undefined) update.image = image
     if (featured !== undefined) update.featured = !!featured
     if (isActive !== undefined) update.isActive = !!isActive
+
+    if (enrollmentCount !== undefined) {
+      if (enrollmentCount === '' || enrollmentCount === null) {
+        update.enrollmentCount = undefined
+      } else {
+        const parsed = Number(enrollmentCount)
+        if (!Number.isNaN(parsed) && parsed >= 0) {
+          update.enrollmentCount = parsed
+        }
+      }
+    }
 
     if (maxStudents !== undefined) {
       update.students =
@@ -78,6 +90,7 @@ export async function PUT(
         image: course.image,
         featured: course.featured,
         isActive: course.isActive,
+        enrollmentCount: typeof course.enrollmentCount === 'number' ? course.enrollmentCount : null,
         startDates: Array.isArray(course.startDates) ? course.startDates : [],
       },
     })

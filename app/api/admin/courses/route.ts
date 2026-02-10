@@ -16,7 +16,16 @@ export async function GET() {
           startDates = [c.startDates]
         }
       }
-      
+
+      // Be defensive about enrollmentCount type (handle numbers or strings)
+      let enrollmentCount: number | null = null
+      if (c.enrollmentCount !== undefined && c.enrollmentCount !== null) {
+        const parsed = Number(c.enrollmentCount)
+        if (!Number.isNaN(parsed) && parsed >= 0) {
+          enrollmentCount = parsed
+        }
+      }
+
       return {
         id: c._id.toString(),
         _id: c._id.toString(),
@@ -31,6 +40,7 @@ export async function GET() {
         rating: c.rating ?? 0,
         reviews: c.reviews ?? 0,
         isActive: c.isActive !== false,
+        enrollmentCount,
         startDates: startDates,
       }
     })
@@ -57,6 +67,7 @@ export async function POST(request: NextRequest) {
       maxStudents,
       image,
       featured,
+      enrollmentCount,
       startDates,
     } = body
 
@@ -95,6 +106,13 @@ export async function POST(request: NextRequest) {
       isActive: true,
     }
 
+    if (enrollmentCount !== undefined && enrollmentCount !== null && enrollmentCount !== '') {
+      const parsed = Number(enrollmentCount)
+      if (!Number.isNaN(parsed) && parsed >= 0) {
+        courseData.enrollmentCount = parsed
+      }
+    }
+
     // Only set startDates if we have valid dates (don't set empty array)
     if (sanitizedStartDates.length > 0) {
       courseData.startDates = sanitizedStartDates
@@ -113,6 +131,7 @@ export async function POST(request: NextRequest) {
       image: course.image,
       featured: course.featured,
       isActive: course.isActive,
+      enrollmentCount: typeof course.enrollmentCount === 'number' ? course.enrollmentCount : null,
       startDates: Array.isArray(course.startDates) ? course.startDates : [],
     }
 
