@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, MapPin, Clock, Users, Star } from "lucide-react"
+import { ArrowRight, MapPin, Clock, Users, Star, Calendar } from "lucide-react"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 
 type Course = {
   id: string
@@ -18,6 +20,7 @@ type Course = {
   reviews: number
   image: string
   featured: boolean
+  startDates?: string[]
 }
 
 const fallbackCourses: Course[] = [
@@ -51,6 +54,28 @@ const fallbackCourses: Course[] = [
 
 function CourseCard({ course, index }: { course: Course; index: number }) {
   const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
+  const [selectedStartDate, setSelectedStartDate] = useState<string>("")
+  const [paymentMode, setPaymentMode] = useState<"deposit" | "full">("deposit")
+
+  // Format date for display (e.g., "2025-03-15" -> "March 15, 2025")
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('en-GB', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+      })
+    } catch {
+      return dateString
+    }
+  }
+
+  const hasStartDates = course.startDates && course.startDates.length > 0
+  const canEnroll = !hasStartDates || selectedStartDate !== ""
+
+  const depositPrice = Math.round(course.price * 0.1 * 100) / 100
+
   return (
     <div
       ref={cardRef}
@@ -109,16 +134,81 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
           </div>
         </div>
 
+        {/* Start Date Selection */}
+        {hasStartDates && (
+          <div className="mb-4 pt-4 border-t border-border">
+            <Label htmlFor={`start-date-${course.id}`} className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Select Start Date
+            </Label>
+            <Select value={selectedStartDate} onValueChange={setSelectedStartDate}>
+              <SelectTrigger id={`start-date-${course.id}`} className="w-full">
+                <SelectValue placeholder="Choose a start date" />
+              </SelectTrigger>
+              <SelectContent>
+                {course.startDates.map((date) => (
+                  <SelectItem key={date} value={date}>
+                    {formatDate(date)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedStartDate && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Selected: {formatDate(selectedStartDate)}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Payment options */}
+        <div className="mb-4 pt-4 border-t border-border space-y-2">
+          <p className="text-xs text-muted-foreground">Choose how you’d like to pay</p>
+          <div className="flex flex-col gap-1 text-xs sm:text-sm">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name={`payment-${course.id}`}
+                value="deposit"
+                checked={paymentMode === "deposit"}
+                onChange={() => setPaymentMode("deposit")}
+                className="h-3 w-3 accent-primary"
+              />
+              <span>
+                Pay 10% non-refundable deposit now (£{depositPrice.toFixed(2)})
+              </span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name={`payment-${course.id}`}
+                value="full"
+                checked={paymentMode === "full"}
+                onChange={() => setPaymentMode("full")}
+                className="h-3 w-3 accent-primary"
+              />
+              <span>
+                Pay full amount now (£{course.price.toFixed(2)})
+              </span>
+            </label>
+          </div>
+        </div>
+
         {/* Price & CTA */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 pt-4 border-t border-border">
           <div>
             <span className="text-xl sm:text-2xl font-serif font-medium text-primary">£{course.price}</span>
           </div>
           <Button 
-            className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-4 sm:px-6 group/btn transition-all duration-300 hover:scale-105 ripple-effect text-sm sm:text-base h-9 sm:h-10"
+            className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-4 sm:px-6 group/btn transition-all duration-300 hover:scale-105 ripple-effect text-sm sm:text-base h-9 sm:h-10 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!canEnroll}
             onClick={async (e) => {
               e.preventDefault()
+              if (!canEnroll) return
+              
               try {
+                const priceToCharge = paymentMode === "deposit" ? depositPrice : course.price
+
                 const response = await fetch('/api/create-checkout-session', {
                   method: 'POST',
                   headers: {
@@ -129,7 +219,7 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
                       {
                         name: course.title,
                         description: course.description,
-                        price: course.price,
+                        price: priceToCharge,
                         quantity: 1,
                         image: course.image,
                       },
@@ -141,6 +231,11 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
                       courseName: course.title,
                       duration: course.duration,
                       location: course.location,
+                      paymentMode,
+                      courseFullPrice: String(course.price),
+                      chargedAmount: String(priceToCharge),
+                      depositPercentage: paymentMode === "deposit" ? "10" : "0",
+                      ...(selectedStartDate && { selectedStartDate }),
                     },
                   }),
                 })

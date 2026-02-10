@@ -36,7 +36,7 @@ export async function PUT(
     await connectDB()
     const { id } = await params
     const body = await request.json()
-    const { name, category, duration, price, description, isActive, sizes } = body
+    const { name, category, duration, price, description, isActive, sizes, subServices } = body
 
     let sanitizedSizes: { size: string; price: number }[] | undefined
     if (Array.isArray(sizes)) {
@@ -47,6 +47,18 @@ export async function PUT(
           .filter((s: any) => s && ['S', 'M', 'L', 'XL'].includes(s.size) && typeof s.price === 'number')
           .map((s: any) => ({ size: s.size, price: Number(s.price) }))
         if (list.length > 0) sanitizedSizes = list
+      }
+    }
+
+    let sanitizedSubServices: { name: string; price: number }[] | undefined
+    if (Array.isArray(subServices)) {
+      if (subServices.length === 0) {
+        sanitizedSubServices = undefined
+      } else {
+        const list = subServices
+          .filter((s: any) => s && typeof s.name === 'string' && String(s.name).trim() && typeof s.price === 'number')
+          .map((s: any) => ({ name: String(s.name).trim(), price: Number(s.price) }))
+        if (list.length > 0) sanitizedSubServices = list
       }
     }
 
@@ -71,6 +83,13 @@ export async function PUT(
         update.sizes = undefined
       } else if (sanitizedSizes && sanitizedSizes.length > 0) {
         update.sizes = sanitizedSizes
+      }
+    }
+    if (Array.isArray(subServices)) {
+      if (subServices.length === 0) {
+        update.subServices = undefined
+      } else if (sanitizedSubServices && sanitizedSubServices.length > 0) {
+        update.subServices = sanitizedSubServices
       }
     }
 

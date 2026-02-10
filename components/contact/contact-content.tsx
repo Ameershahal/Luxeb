@@ -13,12 +13,21 @@ export function ContactContent() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    const form = e.currentTarget
+    const name = (form.elements.namedItem("name") as HTMLInputElement).value
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value
+    const subject = (form.elements.namedItem("subject") as HTMLInputElement).value
+    const message = (form.elements.namedItem("message") as HTMLTextAreaElement).value
+    const body = `From: ${name} (${email})\n\n${message}`
+    const mailto = `mailto:info@luxebeautyandtrainingacademy.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    window.location.href = mailto
     setIsSubmitting(true)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsSubmitting(false)
-    setIsSubmitted(true)
+    setTimeout(() => {
+      setIsSubmitting(false)
+      setIsSubmitted(true)
+    }, 300)
   }
 
   return (
@@ -64,9 +73,9 @@ export function ContactContent() {
                 <div>
                   <p className="font-medium text-foreground">Hours</p>
                   <p className="text-muted-foreground">
-                    Monday - Saturday: 9am - 8pm
+                    Mon - Sat: 8am - 8pm
                     <br />
-                    Sunday: 10am - 6pm
+                    Sun: 10am - 6pm
                   </p>
                 </div>
               </div>
@@ -91,11 +100,6 @@ export function ContactContent() {
                 </div>
               </div>
             </div>
-
-            {/* Map Placeholder */}
-            <div className="aspect-video rounded-xl overflow-hidden bg-muted">
-              <img src="/elegant-map-new-york-luxury-location.jpg" alt="Studio location map" className="h-full w-full object-cover" />
-            </div>
           </div>
 
           {/* Contact Form */}
@@ -117,22 +121,22 @@ export function ContactContent() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
-                    <Input id="name" placeholder="Your name" required />
+                    <Input id="name" name="name" placeholder="Your name" required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="your@email.com" required />
+                    <Input id="email" name="email" type="email" placeholder="your@email.com" required />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="subject">Subject</Label>
-                  <Input id="subject" placeholder="How can we help?" required />
+                  <Input id="subject" name="subject" placeholder="How can we help?" required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="message">Message</Label>
-                  <Textarea id="message" placeholder="Tell us more..." rows={5} required />
+                  <Textarea id="message" name="message" placeholder="Tell us more..." rows={5} required />
                 </div>
 
                 <Button

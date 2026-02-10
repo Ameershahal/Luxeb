@@ -74,7 +74,7 @@ export function FounderPhotosSection() {
               Meet the Founder
             </p>
             <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-foreground text-balance">
-              The Vision Behind <span className="italic">Luxe Beauty & Training Academy</span>
+              The Vision Behind Luxe Beauty & Training Academy
             </h2>
             <p className="mt-4 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
               Get to know Ioana Andreiana, the creative force behind our luxury beauty studio
@@ -104,13 +104,6 @@ export function FounderPhotosSection() {
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-
-                    {/* Click indicator */}
-                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center">
-                        <span className="text-xs text-foreground">+</span>
-                      </div>
                     </div>
                   </div>
                 )

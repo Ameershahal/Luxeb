@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useSearchParams } from "next/navigation"
+import { resolvePreselect } from "@/lib/booking-utils"
 import { CategorySelection } from "./category-selection"
 import { ServiceSelection } from "./service-selection"
 import { StylistSelection } from "./stylist-selection"
@@ -19,6 +20,7 @@ export type BookingData = {
     duration: number
     price: number
     size?: string
+    subServiceName?: string
   }[]
   stylist: {
     id: string
@@ -48,23 +50,63 @@ const steps = [
   { id: 6, name: "Confirm", description: "Review & book" },
 ]
 
+const initialBookingData: BookingData = {
+  selectedCategoryId: null,
+  services: [],
+  stylist: null,
+  dateTime: { date: null, time: null },
+  client: { firstName: "", lastName: "", email: "", phone: "", notes: "" },
+}
+
 export function BookingWizard() {
   const searchParams = useSearchParams()
-  const [currentStep, setCurrentStep] = useState(1)
-  const [bookingData, setBookingData] = useState<BookingData>({
-    selectedCategoryId: null,
-    services: [],
-    stylist: null,
-    dateTime: { date: null, time: null },
-    client: { firstName: "", lastName: "", email: "", phone: "", notes: "" },
-  })
+  const serviceParam = searchParams.get("service")
+  const preselectParam = searchParams.get("preselect")
+  const skipToStylist = Boolean(serviceParam && preselectParam)
+  const [currentStep, setCurrentStep] = useState(() =>
+    skipToStylist ? 3 : serviceParam ? 2 : 1
+  )
+  const [bookingData, setBookingData] = useState<BookingData>(() => ({
+    ...initialBookingData,
+    selectedCategoryId: serviceParam || null,
+  }))
+  const preselectDirectApplied = useRef(false)
 
   useEffect(() => {
-    const serviceParam = searchParams.get("service")
-    if (serviceParam) {
-      setBookingData((prev) => ({ ...prev, selectedCategoryId: serviceParam }))
+    const next = searchParams.get("service")
+    if (next) {
+      setBookingData((prev) => ({ ...prev, selectedCategoryId: next }))
+      if (!searchParams.get("preselect")) setCurrentStep(2)
     }
   }, [searchParams])
+
+  useEffect(() => {
+    if (!skipToStylist || preselectDirectApplied.current) return
+    let cancelled = false
+    preselectDirectApplied.current = true
+    fetch("/api/services")
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data.success || !data.services?.length) return
+        const entry = resolvePreselect(
+          data.services,
+          serviceParam!,
+          preselectParam!
+        )
+        if (entry) {
+          setBookingData((prev) => ({
+            ...prev,
+            selectedCategoryId: serviceParam,
+            services: [entry],
+          }))
+          setCurrentStep(3)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [skipToStylist, serviceParam, preselectParam])
 
   const updateBookingData = (data: Partial<BookingData>) => {
     setBookingData((prev) => {
@@ -117,6 +159,7 @@ export function BookingWizard() {
                     onSelect={(services) => updateBookingData({ services })}
                     onNext={nextStep}
                     onBack={prevStep}
+                    preselectServiceName={searchParams.get("preselect") ?? undefined}
                   />
                 ) : (
                   <CategorySelection

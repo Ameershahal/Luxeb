@@ -18,6 +18,7 @@ export async function GET() {
       featured: !!c.featured,
       rating: c.rating ?? 0,
       reviews: c.reviews ?? 0,
+      startDates: Array.isArray(c.startDates) ? c.startDates : [],
     }))
     return NextResponse.json({ success: true, courses: list })
   } catch (error: any) {

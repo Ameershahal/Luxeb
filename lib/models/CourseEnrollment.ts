@@ -23,6 +23,7 @@ export interface ICourseEnrollment extends Document {
   }
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
   enrollmentNumber: string
+  selectedStartDate?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -62,6 +63,9 @@ const CourseEnrollmentSchema = new Schema<ICourseEnrollment>(
       type: String,
       required: true,
       unique: true,
+    },
+    selectedStartDate: {
+      type: String,
     },
   },
   {

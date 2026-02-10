@@ -24,6 +24,10 @@ type CourseRow = {
   duration: string
   students: string
   isActive?: boolean
+  description?: string
+  location?: string
+  image?: string
+  startDates?: string[]
 }
 
 export default function AdminCourses() {
@@ -35,6 +39,7 @@ export default function AdminCourses() {
   const [isLoading, setIsLoading] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
+  const [selectedCourse, setSelectedCourse] = useState<CourseRow | null>(null)
 
   const [formData, setFormData] = useState({
     title: "",
@@ -44,6 +49,7 @@ export default function AdminCourses() {
     maxStudents: "",
     description: "",
     image: "",
+    startDates: [] as string[],
   })
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,6 +101,7 @@ export default function AdminCourses() {
       maxStudents: "",
       description: "",
       image: "",
+      startDates: [],
     })
     fileInputRef.current && (fileInputRef.current.value = "")
   }
@@ -105,16 +112,26 @@ export default function AdminCourses() {
       const res = await fetch("/api/admin/courses")
       const data = await res.json()
       if (data.success && Array.isArray(data.courses)) {
-        setCourses(
-          data.courses.map((c: any) => ({
+        const mappedCourses = data.courses.map((c: any) => {
+          const courseData = {
             id: c.id || c._id,
             title: c.title,
             price: c.price,
             duration: c.duration || "",
             students: c.students || "",
             isActive: c.isActive !== false,
-          }))
-        )
+            description: c.description || "",
+            location: c.location || "",
+            image: c.image || "",
+            startDates: Array.isArray(c.startDates) ? c.startDates : [],
+          }
+          // Debug: Log courses with dates
+          if (courseData.startDates && courseData.startDates.length > 0) {
+            console.log(`📚 Course "${courseData.title}" has dates:`, courseData.startDates)
+          }
+          return courseData
+        })
+        setCourses(mappedCourses)
       }
     } catch (err) {
       console.error(err)
@@ -143,17 +160,34 @@ export default function AdminCourses() {
           <h1 className="font-serif text-4xl font-medium text-foreground mb-2">Courses</h1>
           <p className="text-muted-foreground">Manage your training courses</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open)
+            if (!open) {
+              setSelectedCourse(null)
+              resetForm()
+            }
+          }}
+        >
           <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={() => {
+                setSelectedCourse(null)
+                resetForm()
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add Course
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add New Course</DialogTitle>
-              <DialogDescription>Create a new training course</DialogDescription>
+              <DialogTitle>{selectedCourse ? "Edit Course" : "Add New Course"}</DialogTitle>
+              <DialogDescription>
+                {selectedCourse ? "Update the course details." : "Create a new training course."}
+              </DialogDescription>
             </DialogHeader>
             <form
               className="space-y-4"
@@ -161,40 +195,73 @@ export default function AdminCourses() {
                 e.preventDefault()
                 setIsSubmitting(true)
                 try {
-                  const res = await fetch("/api/admin/courses", {
-                    method: "POST",
+                  const isUpdate = !!selectedCourse
+                  const url = isUpdate
+                    ? `/api/admin/courses/${selectedCourse!.id}`
+                    : "/api/admin/courses"
+                  const method = isUpdate ? "PUT" : "POST"
+
+                  // Filter out empty date strings before sending
+                  const validDates = Array.isArray(formData.startDates)
+                    ? formData.startDates.filter((d) => {
+                        if (!d) return false
+                        const str = String(d).trim()
+                        return str !== '' && str.length > 0
+                      })
+                    : []
+                  
+                  const payload = {
+                    title: formData.title,
+                    description: formData.description,
+                    price: formData.price ? Number(formData.price) : 0,
+                    duration: formData.duration,
+                    location: formData.location,
+                    maxStudents: formData.maxStudents,
+                    image: formData.image,
+                    startDates: validDates,
+                  }
+                  
+                  const res = await fetch(url, {
+                    method,
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      title: formData.title,
-                      description: formData.description,
-                      price: formData.price ? Number(formData.price) : 0,
-                      duration: formData.duration,
-                      location: formData.location,
-                      maxStudents: formData.maxStudents,
-                      image: formData.image,
-                    }),
+                    body: JSON.stringify(payload),
                   })
+
+                  if (!res.ok) {
+                    const errorText = await res.text()
+                    let errorData
+                    try {
+                      errorData = JSON.parse(errorText)
+                    } catch {
+                      errorData = { error: errorText || `HTTP ${res.status}` }
+                    }
+                    throw new Error(errorData.error || `Failed to ${isUpdate ? 'update' : 'create'} course`)
+                  }
+
                   const data = await res.json()
                   if (data.success) {
                     toast({
-                      title: "Course created",
-                      description: "The course has been added and will appear on the site.",
+                      title: isUpdate ? "Course updated" : "Course created",
+                      description: isUpdate
+                        ? "The course has been updated."
+                        : "The course has been added and will appear on the site.",
                     })
                     setIsDialogOpen(false)
                     resetForm()
+                    setSelectedCourse(null)
                     fetchCourses()
                   } else {
                     toast({
                       title: "Error",
-                      description: data.error || "Failed to create course",
+                      description: data.error || `Failed to ${isUpdate ? 'update' : 'create'} course`,
                       variant: "destructive",
                     })
                   }
-                } catch (err) {
-                  console.error(err)
+                } catch (err: any) {
+                  console.error('Course save error:', err)
                   toast({
                     title: "Error",
-                    description: "Failed to create course",
+                    description: err.message || `Failed to ${isUpdate ? 'update' : 'create'} course`,
                     variant: "destructive",
                   })
                 } finally {
@@ -251,6 +318,70 @@ export default function AdminCourses() {
                     value={formData.maxStudents}
                     onChange={(e) => setFormData({ ...formData, maxStudents: e.target.value })}
                   />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Start dates (optional)</Label>
+                <p className="text-xs text-muted-foreground">
+                  Add multiple dates so students can choose a comfortable start date.
+                </p>
+                <div className="space-y-2">
+                  {(formData.startDates && formData.startDates.length > 0 
+                    ? formData.startDates 
+                    : [""]
+                  ).map((date, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <Input
+                        type="date"
+                        value={date}
+                        onChange={(e) => {
+                          const newValue = e.target.value
+                          setFormData((prev) => {
+                            const currentDates = prev.startDates && prev.startDates.length > 0 
+                              ? [...prev.startDates] 
+                              : [""]
+                            const updatedDates = currentDates.map((d, j) => (j === i ? newValue : d))
+                            return {
+                              ...prev,
+                              startDates: updatedDates,
+                            }
+                          })
+                        }}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            startDates:
+                              prev.startDates.length <= 1
+                                ? []
+                                : prev.startDates.filter((_, j) => j !== i),
+                          }))
+                        }
+                        aria-label="Remove date"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        startDates: [...(prev.startDates.length ? prev.startDates : [""]), ""],
+                      }))
+                    }
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add date
+                  </Button>
                 </div>
               </div>
               <div className="space-y-2">
@@ -328,6 +459,7 @@ export default function AdminCourses() {
                   variant="outline"
                   onClick={() => {
                     setIsDialogOpen(false)
+                    setSelectedCourse(null)
                     resetForm()
                   }}
                 >
@@ -341,10 +473,10 @@ export default function AdminCourses() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating…
+                      {selectedCourse ? "Saving…" : "Creating…"}
                     </>
                   ) : (
-                    "Create Course"
+                    selectedCourse ? "Save Changes" : "Create Course"
                   )}
                 </Button>
               </div>
@@ -403,10 +535,80 @@ export default function AdminCourses() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedCourse(course)
+                            // Debug: Check what we're loading
+                            console.log('🔍 Loading course for edit:', {
+                              title: course.title,
+                              startDates: course.startDates,
+                              startDatesType: typeof course.startDates,
+                              isArray: Array.isArray(course.startDates),
+                              startDatesLength: Array.isArray(course.startDates) ? course.startDates.length : 'N/A'
+                            })
+                            
+                            // Load startDates - ensure it's always an array
+                            const dates = Array.isArray(course.startDates) && course.startDates.length > 0
+                              ? [...course.startDates] // Copy the array as-is
+                              : []
+                            
+                            console.log('📅 Dates loaded into form:', dates)
+                            
+                            setFormData({
+                              title: course.title,
+                              price: String(course.price ?? ""),
+                              duration: course.duration || "",
+                              location: course.location || "",
+                              maxStudents:
+                                course.students && course.students.match(/\d+/)
+                                  ? course.students.match(/\d+/)![0]
+                                  : "",
+                              description: course.description || "",
+                              image: course.image || "",
+                              startDates: dates, // Use dates as-is from database
+                            })
+                            setIsDialogOpen(true)
+                          }}
+                          aria-label="Edit course"
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={async () => {
+                            if (!window.confirm("Delete this course?")) return
+                            try {
+                              const res = await fetch(`/api/admin/courses/${course.id}`, {
+                                method: "DELETE",
+                              })
+                              const data = await res.json()
+                              if (data.success) {
+                                toast({
+                                  title: "Course deleted",
+                                  description: "The course has been removed.",
+                                })
+                                fetchCourses()
+                              } else {
+                                toast({
+                                  title: "Error",
+                                  description: data.error || "Failed to delete course",
+                                  variant: "destructive",
+                                })
+                              }
+                            } catch (err) {
+                              console.error(err)
+                              toast({
+                                title: "Error",
+                                description: "Failed to delete course",
+                                variant: "destructive",
+                              })
+                            }
+                          }}
+                          aria-label="Delete course"
+                        >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>

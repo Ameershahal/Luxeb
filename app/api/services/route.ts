@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
       price: service.price,
       description: service.description || '',
       sizes: service.sizes && service.sizes.length > 0 ? service.sizes : undefined,
+      subServices: service.subServices && service.subServices.length > 0 ? service.subServices : undefined,
     }))
     
     return NextResponse.json({ success: true, services: formattedServices })

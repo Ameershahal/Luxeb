@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB()
     const body = await request.json()
-    const { name, category, duration, price, description, isActive, sizes } = body
+    const { name, category, duration, price, description, isActive, sizes, subServices } = body
 
     if (!name || !category || !duration) {
       return NextResponse.json(
@@ -46,6 +46,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const sanitizedSubServices = Array.isArray(subServices) && subServices.length > 0
+      ? subServices
+          .filter((s: any) => s && typeof s.name === 'string' && s.name.trim() && typeof s.price === 'number')
+          .map((s: any) => ({ name: String(s.name).trim(), price: Number(s.price) }))
+      : undefined
+
     const service = await Service.create({
       name,
       category,
@@ -54,6 +60,7 @@ export async function POST(request: NextRequest) {
       description: description || '',
       isActive: isActive !== undefined ? isActive : true,
       ...(hasSizes && { sizes: sanitizedSizes }),
+      ...(sanitizedSubServices && sanitizedSubServices.length > 0 && { subServices: sanitizedSubServices }),
     })
 
     return NextResponse.json({ success: true, service }, { status: 201 })

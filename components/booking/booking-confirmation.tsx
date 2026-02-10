@@ -128,8 +128,8 @@ export function BookingConfirmation({ bookingData, onBack, onEdit }: BookingConf
                     {bookingData.services?.length === 1 ? 'Service' : 'Services'}
                   </p>
                   <ul className="list-none mt-1 space-y-1">
-                    {bookingData.services?.map((s) => (
-                      <li key={s.id} className="font-medium text-foreground">
+                    {bookingData.services?.map((s, idx) => (
+                      <li key={`${s.id}-${s.subServiceName ?? s.size ?? idx}`} className="font-medium text-foreground">
                         {s.name}
                         {s.size && <span className="text-foreground font-normal"> ({s.size})</span>}
                         <span className="text-muted-foreground font-normal text-sm ml-1">

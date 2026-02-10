@@ -13,7 +13,8 @@ const serviceCards = [
     title: "Manicure",
     description: "Exquisite manicures, intricate nail art, and luxurious treatments using premium products.",
     image: "/manicure.jpeg",
-    categoryMatch: (cat: string) => /manicure/i.test(cat) && !/pedicure|nails/i.test(cat),
+    categoryMatch: (cat: string) => /manicure/i.test(cat) || /nails/i.test(cat),
+    categorySlug: "nails",
     href: "/booking?service=nails",
   },
   {
@@ -21,14 +22,16 @@ const serviceCards = [
     description: "Advanced Pedicure & Foot Health",
     image: "/pedicure.jpeg",
     categoryMatch: (cat: string) => /pedicure|foot|feet/i.test(cat),
+    categorySlug: "pedicure",
     href: "/booking?service=pedicure",
   },
   {
     title: "Treatment",
     description: "Specialised treatments and premium care.",
     image: "/treatment.jpeg",
-    categoryMatch: (cat: string) => /treatment/i.test(cat),
-    href: "/booking?service=treatment",
+    categoryMatch: (cat: string) => /treatment|treatments|beauty/i.test(cat),
+    categorySlug: "treatments",
+    href: "/booking?service=treatments",
   },
 ]
 
@@ -62,10 +65,7 @@ export function ServicesSection() {
           ref={headerRef}
           className={`text-center mb-12 sm:mb-16 lg:mb-20 scroll-reveal ${headerVisible ? 'revealed' : ''}`}
         >
-          <p className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary mb-3 sm:mb-4">Our Services</p>
-          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-foreground text-balance">
-            Crafted for <span className="italic">Excellence</span>
-          </h2>
+          <p className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary">Our Services</p>
         </div>
 
         {/* Services Grid */}
@@ -97,16 +97,18 @@ export function ServicesSection() {
                 </h3>
                 <p className="text-secondary-foreground/80 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4 line-clamp-2">{service.description}</p>
 
-                {/* Real services from API */}
+                {/* Real services from API - click to go to booking with that service preselect */}
                 {benefits.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4 sm:mb-6">
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4 sm:mb-6 relative z-10">
                     {benefits.map((name) => (
-                      <span
+                      <Link
                         key={name}
-                        className="text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-secondary-foreground/10 text-secondary-foreground/90"
+                        href={`/booking?service=${service.categorySlug}&preselect=${encodeURIComponent(name)}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="relative z-10 cursor-pointer text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-secondary-foreground/10 text-secondary-foreground/90 hover:bg-secondary-foreground/20 transition-colors"
                       >
                         {name}
-                      </span>
+                      </Link>
                     ))}
                   </div>
                 )}

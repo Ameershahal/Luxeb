@@ -7,6 +7,11 @@ export interface IServiceSize {
   price: number
 }
 
+export interface IServiceSubService {
+  name: string
+  price: number
+}
+
 export interface IService extends Document {
   name: string
   category: string
@@ -16,12 +21,19 @@ export interface IService extends Document {
   isActive: boolean
   /** Optional size-based pricing. If set, client picks a size and price comes from here. */
   sizes?: IServiceSize[]
+  /** Optional sub-services. If set, client must pick one or more; each adds a line with sub name + price. */
+  subServices?: IServiceSubService[]
   createdAt: Date
   updatedAt: Date
 }
 
 const ServiceSizeSchema = new Schema<IServiceSize>(
   { size: { type: String, required: true, enum: ['S', 'M', 'L', 'XL'] }, price: { type: Number, required: true, min: 0 } },
+  { _id: false }
+)
+
+const ServiceSubServiceSchema = new Schema<IServiceSubService>(
+  { name: { type: String, required: true }, price: { type: Number, required: true, min: 0 } },
   { _id: false }
 )
 
@@ -37,6 +49,7 @@ const ServiceSchema = new Schema<IService>(
     description: { type: String, default: '' },
     isActive: { type: Boolean, default: true },
     sizes: { type: [ServiceSizeSchema], default: undefined },
+    subServices: { type: [ServiceSubServiceSchema], default: undefined },
   },
   {
     timestamps: true,

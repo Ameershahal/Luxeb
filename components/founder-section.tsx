@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Quote } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 
 export function FounderSection() {
@@ -31,29 +31,22 @@ export function FounderSection() {
               A Vision of <span className="italic">Timeless Beauty</span>
             </h2>
 
-            <div className="relative mb-6 sm:mb-8">
-              <Quote className="absolute -top-1 -left-1 sm:-top-2 sm:-left-2 h-6 w-6 sm:h-8 sm:w-8 text-primary/20" />
-              <blockquote className="pl-6 sm:pl-8 font-serif text-lg sm:text-xl lg:text-2xl text-foreground/80 italic leading-relaxed">
-                "Beauty is not just about appearance—it's about how you feel when you walk out our doors. Every service
-                we offer is designed to elevate not just your look, but your confidence."
-              </blockquote>
-            </div>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-3 sm:mb-4">
+              With over 10 years of experience in the beauty industry, Ioana Andreiana founded Luxe Beauty & Training with a clear vision: to create a space where luxury, artistry, and confidence come together.
+            </p>
 
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-3 sm:mb-4">
-              With over 10 years of experience in the beauty industry, Ioana Andreiana founded Luxe Beauty & Training with a
-              singular vision: to create a sanctuary where artistry meets luxury. Her background in fine arts and her
-              passion for beauty converge in every service we offer.
+              With a background in fine arts and professional training under world-renowned educator Dana Miron, Ioana has mastered advanced techniques that reflect both precision and creativity.
             </p>
 
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-6 sm:mb-8">
-              Today, Luxe Beauty & Training stands as a testament to her belief that every woman deserves to experience beauty at
-              its finest—thoughtful, personalized, and utterly transformative.
+              Today, she is not only a trusted beauty expert but also a Certified Trainer dedicated to inspiring women to feel empowered, confident, and beautifully transformed.
             </p>
 
             <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
               <div>
                 <p className="font-serif text-xl sm:text-2xl font-medium text-foreground">Ioana Andreiana</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">Founder & Creative Director</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Founder</p>
               </div>
             </div>
 

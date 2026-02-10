@@ -14,7 +14,6 @@ const navLinks = [
   { href: "/booking", label: "Booking" },
   { href: "/shop", label: "Shop" },
   { href: "/gallery", label: "Gallery" },
-  { href: "/founder", label: "Founder" },
   { href: "/contact", label: "Contact" },
 ]
 
@@ -72,8 +71,7 @@ export function Navbar() {
                 href={link.href}
                 className={cn(
                   "text-sm font-medium tracking-wide transition-all duration-300 relative group/nav",
-                  "hover:text-primary after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
-                  link.label === "Booking" ? "text-primary after:w-full" : "text-foreground/80",
+                  "text-foreground/80 hover:text-primary after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
                 )}
               >
                 {link.label}
@@ -118,19 +116,18 @@ export function Navbar() {
         {/* Mobile Menu */}
         <div
           className={cn(
-            "lg:hidden overflow-hidden transition-all duration-300",
-            isMobileMenuOpen ? "max-h-96 pb-6" : "max-h-0",
+            "lg:hidden overflow-y-auto overflow-x-hidden transition-all duration-300",
+            isMobileMenuOpen ? "max-h-[min(28rem,70vh)] pb-6" : "max-h-0 overflow-hidden",
           )}
         >
-          <div className="flex flex-col gap-4 pt-4 border-t border-border/50 mt-2">
+          <div className="flex flex-col gap-4 pt-4 pb-4 border-t border-border/50 mt-2">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
-                  "text-base font-medium tracking-wide transition-colors hover:text-primary py-2",
-                  link.label === "Booking" ? "text-primary" : "text-foreground/80",
+                  "text-base font-medium tracking-wide transition-colors hover:text-primary py-2 text-foreground/80",
                 )}
               >
                 {link.label}

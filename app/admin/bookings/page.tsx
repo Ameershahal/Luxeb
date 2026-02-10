@@ -65,6 +65,11 @@ interface ServiceSize {
   price: number
 }
 
+interface ServiceSubService {
+  name: string
+  price: number
+}
+
 interface Service {
   _id: string
   name: string
@@ -74,6 +79,7 @@ interface Service {
   description: string
   isActive: boolean
   sizes?: ServiceSize[]
+  subServices?: ServiceSubService[]
 }
 
 interface Category {
@@ -142,6 +148,7 @@ export default function AdminBookings() {
     description: "",
     isActive: true,
     sizes: [] as ServiceSize[],
+    subServices: [] as ServiceSubService[],
   })
 
   // Category form state
@@ -151,8 +158,8 @@ export default function AdminBookings() {
     isActive: true,
   })
 
-  // Mock bookings data
-  const bookings = [
+  // Mock bookings data (local state so actions can update status)
+  const initialBookings = [
     {
       id: 1,
       client: "Sarah Johnson",
@@ -181,6 +188,8 @@ export default function AdminBookings() {
       status: "pending",
     },
   ]
+
+  const [bookings, setBookings] = useState(initialBookings)
 
   // Fetch stylists
   useEffect(() => {
@@ -568,6 +577,7 @@ export default function AdminBookings() {
         ...serviceFormData,
         duration: parseInt(serviceFormData.duration),
         sizes: serviceFormData.sizes && serviceFormData.sizes.length > 0 ? serviceFormData.sizes : [],
+        subServices: serviceFormData.subServices && serviceFormData.subServices.length > 0 ? serviceFormData.subServices : [],
       }
       if (hasNormalPrice) {
         payload.price = parseFloat(serviceFormData.price)
@@ -660,6 +670,7 @@ export default function AdminBookings() {
         description: service.description || "",
         isActive: service.isActive,
         sizes: (service.sizes && service.sizes.length > 0 ? service.sizes : []) as ServiceSize[],
+        subServices: (service.subServices && service.subServices.length > 0 ? service.subServices : []) as ServiceSubService[],
       })
     } else {
       setSelectedService(null)
@@ -672,6 +683,7 @@ export default function AdminBookings() {
         description: "",
         isActive: true,
         sizes: [],
+        subServices: [],
       })
     }
     setIsServiceDialogOpen(true)
@@ -687,7 +699,21 @@ export default function AdminBookings() {
       description: "",
       isActive: true,
       sizes: [],
+      subServices: [],
     })
+  }
+
+  const addSubService = () => {
+    setServiceFormData({ ...serviceFormData, subServices: [...serviceFormData.subServices, { name: "", price: 0 }] })
+  }
+  const removeSubService = (index: number) => {
+    setServiceFormData({ ...serviceFormData, subServices: serviceFormData.subServices.filter((_, i) => i !== index) })
+  }
+  const updateSubService = (index: number, field: 'name' | 'price', value: string | number) => {
+    const next = [...serviceFormData.subServices]
+    if (field === 'name') next[index] = { ...next[index], name: String(value) }
+    else next[index] = { ...next[index], price: Number(value) }
+    setServiceFormData({ ...serviceFormData, subServices: next })
   }
 
   const SIZE_LABELS: ServiceSize['size'][] = ['S', 'M', 'L', 'XL']
@@ -933,6 +959,14 @@ export default function AdminBookings() {
     stylist.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const updateBookingStatus = (id: number, status: "pending" | "confirmed" | "cancelled") => {
+    setBookings((prev) =>
+      prev.map((booking) =>
+        booking.id === id ? { ...booking, status } : booking
+      )
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -1117,10 +1151,22 @@ export default function AdminBookings() {
                       <div className="flex justify-end gap-2">
                         {booking.status === "pending" && (
                           <>
-                            <Button variant="ghost" size="icon" className="text-primary">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-primary"
+                              onClick={() => updateBookingStatus(booking.id, "confirmed")}
+                              aria-label="Mark booking as confirmed"
+                            >
                               <Check className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="text-destructive">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive"
+                              onClick={() => updateBookingStatus(booking.id, "cancelled")}
+                              aria-label="Cancel booking"
+                            >
                               <X className="h-4 w-4" />
                             </Button>
                           </>
@@ -1952,6 +1998,39 @@ export default function AdminBookings() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Sub-services (optional)</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Add sub-options under this service (e.g. &quot;Onycolysis + Mycosis&quot;). Clients will pick one or more when booking.
+              </p>
+              {serviceFormData.subServices.map((sub, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <Input
+                    placeholder="Sub-service name"
+                    value={sub.name}
+                    onChange={(e) => updateSubService(index, "name", e.target.value)}
+                    className="flex-1"
+                  />
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="£"
+                    value={sub.price || ""}
+                    onChange={(e) => updateSubService(index, "price", e.target.value === "" ? 0 : parseFloat(e.target.value))}
+                    className="w-24"
+                  />
+                  <Button type="button" variant="ghost" size="icon" onClick={() => removeSubService(index)} aria-label="Remove sub-service">
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" onClick={addSubService}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add sub-service
+              </Button>
             </div>
 
             <div className="space-y-2">

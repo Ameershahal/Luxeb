@@ -5,6 +5,7 @@ import { ServicesSection } from "@/components/services-section"
 import { FounderSection } from "@/components/founder-section"
 import { TestimonialsSection } from "@/components/testimonials-section"
 import { BookingCtaSection } from "@/components/booking-cta-section"
+import { AbtAccreditedSection } from "@/components/abt-accredited-section"
 import { Footer } from "@/components/footer"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { ScrollProgress } from "@/components/scroll-progress"
@@ -21,6 +22,7 @@ export default function HomePage() {
       <FounderSection />
       <TestimonialsSection />
       <BookingCtaSection />
+      <AbtAccreditedSection />
       <Footer />
       <MobileBottomNav />
       <BackToTop />

@@ -1,52 +1,25 @@
 "use client"
 
-import { Quote } from "lucide-react"
-
 export function FounderStory() {
   return (
     <section className="py-20 lg:py-28 bg-muted">
       <div className="mx-auto max-w-4xl px-6 lg:px-8">
-        {/* Quote */}
-        <div className="text-center mb-16">
-          <Quote className="h-12 w-12 text-primary/30 mx-auto mb-6" />
-          <blockquote className="font-serif text-2xl sm:text-3xl lg:text-4xl text-foreground italic leading-relaxed text-balance">
-            "True beauty is not about perfection—it's about the confidence that radiates when a woman feels
-            authentically herself."
-          </blockquote>
-          <cite className="block mt-6 text-muted-foreground not-italic">— Ioana Andreiana</cite>
-        </div>
-
-        {/* Story */}
         <div className="prose prose-lg max-w-none">
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-            <div>
-              <h2 className="font-serif text-2xl font-medium text-foreground mb-4">The Beginning</h2>
-              <p className="text-muted-foreground leading-relaxed mb-6">
-                Ioana Andreiana's journey into the world of beauty began in her grandmother's salon—a
-                modest establishment that nonetheless attracted the most discerning clientele in the region. It was
-                there, watching her grandmother transform not just appearances but spirits, that Ioana Andreiana discovered her
-                calling.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                After training at the prestigious Institut Supérieur de Beauté in Paris, she spent a decade working
-                behind the scenes at fashion weeks in Milan, New York, and Tokyo, perfecting her craft alongside the
-                industry's most renowned artists.
-              </p>
-            </div>
-            <div>
-              <h2 className="font-serif text-2xl font-medium text-foreground mb-4">The Vision</h2>
-              <p className="text-muted-foreground leading-relaxed mb-6">
-                In 2018, Ioana Andreiana returned to New York with a vision: to create a beauty destination that would honor
-                the intimate, transformative experience of her grandmother's salon while embracing the innovation and
-                luxury she had witnessed in the fashion world.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                Luxe Beauty & Training opened its doors with a simple promise—to provide an unparalleled beauty experience where
-                every detail, from the products used to the ambiance created, would reflect the highest standards of
-                elegance and care.
-              </p>
-            </div>
-          </div>
+          <p className="text-muted-foreground leading-relaxed mb-6">
+            Ioana Andreiana is the Founder and Creative Director of Luxe Beauty & Training, a luxury beauty destination built on passion, artistry, and excellence. With over 10 years of experience in the beauty industry, Ioana has dedicated her career to creating transformative experiences that go beyond appearance—enhancing confidence, elegance, and self-expression.
+          </p>
+          <p className="text-muted-foreground leading-relaxed mb-6">
+            Her journey began with a strong desire to learn and perfect her craft. From her very first nail course, Ioana invested deeply in her skills, mastering advanced techniques and developing her signature style under the guidance of world-renowned educator Dana Miron. Her background in fine arts brings a unique creative edge to every service, combining precision with a refined artistic touch.
+          </p>
+          <p className="text-muted-foreground leading-relaxed mb-6">
+            Driven by ambition and an unstoppable energy, Ioana built Luxe Beauty & Training with one clear purpose: to offer every woman a personalized luxury experience, while also empowering future professionals through high-level training and mentorship.
+          </p>
+          <p className="text-muted-foreground leading-relaxed mb-6">
+            Today, Ioana is not only known for her talent and creativity, but also for her role as a Certified Trainer, inspiring students to aim higher, believe in themselves, and build successful careers in the beauty industry.
+          </p>
+          <p className="text-muted-foreground leading-relaxed">
+            For Ioana, beauty is more than a service—it is a feeling, a transformation, and a statement of confidence.
+          </p>
         </div>
       </div>
     </section>

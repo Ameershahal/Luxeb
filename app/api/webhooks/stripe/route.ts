@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
 
         // Save course enrollment if it's a course payment
         if (session.metadata?.type === 'course') {
-          const enrollmentData = {
+          const enrollmentData: any = {
             course: {
               id: session.metadata.courseId || '',
               title: session.metadata.courseName || '',
@@ -163,6 +163,11 @@ export async function POST(request: NextRequest) {
               paidAt: new Date(),
             },
             status: 'confirmed' as const,
+          }
+
+          // Add selected start date if provided
+          if (session.metadata.selectedStartDate) {
+            enrollmentData.selectedStartDate = session.metadata.selectedStartDate
           }
 
           await CourseEnrollment.create(enrollmentData)
