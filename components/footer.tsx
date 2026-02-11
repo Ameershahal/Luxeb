@@ -45,7 +45,7 @@ export function Footer() {
           {/* Brand Column */}
           <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="inline-block mb-4 sm:mb-6">
-              <span className="font-serif text-xl sm:text-2xl font-medium text-secondary-foreground">Luxe Beauty & Training</span>
+              <span className="font-serif text-xl sm:text-2xl font-medium text-secondary-foreground">Luxe Beauty & Training Academy</span>
             </Link>
             <p className="text-secondary-foreground/70 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6">
               A sanctuary of luxury beauty where artistry meets elegance. Experience the finest in nail artistry and

@@ -171,9 +171,6 @@ export function FounderPhotosSection() {
                   alt={availablePhotos[currentIndex].alt}
                   className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
                 />
-                <div className="mt-4 text-center">
-                  <p className="text-sm sm:text-base text-foreground/80">{availablePhotos[currentIndex].caption}</p>
-                </div>
               </div>
             )}
           </div>
