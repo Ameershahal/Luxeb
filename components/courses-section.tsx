@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { ArrowRight, MapPin, Clock, Users, Star, Calendar } from "lucide-react"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -54,6 +56,7 @@ const fallbackCourses: Course[] = [
 ]
 
 function CourseCard({ course, index }: { course: Course; index: number }) {
+  const router = useRouter()
   const [cardRef, cardVisible] = useScrollReveal({ rootMargin: '0px 0px -100px 0px' })
   const [selectedStartDate, setSelectedStartDate] = useState<string>("")
   const [paymentMode, setPaymentMode] = useState<"deposit" | "full">("deposit")
@@ -84,6 +87,7 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
         cardVisible ? 'revealed' : ''
       }`}
       style={{ transitionDelay: `${index * 100}ms` }}
+      onClick={() => router.push(`/courses/${course.id}`)}
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -116,11 +120,8 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
         {/* Title */}
         <h3 className="font-serif text-xl lg:text-2xl font-medium text-foreground mb-2">{course.title}</h3>
 
-        {/* Description */}
-        <p className="text-muted-foreground text-sm leading-relaxed mb-4">{course.description}</p>
-
         {/* Course Details */}
-        <div className="space-y-2 mb-6">
+        <div className="space-y-2 mb-6 mt-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
             <span>{course.duration}</span>
@@ -145,7 +146,7 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
 
         {/* Start Date Selection */}
         {hasStartDates && (
-          <div className="mb-4 pt-4 border-t border-border">
+          <div className="mb-4 pt-4 border-t border-border" onClick={(e) => e.stopPropagation()}>
             <Label htmlFor={`start-date-${course.id}`} className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               Select Start Date
@@ -171,7 +172,7 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
         )}
 
         {/* Payment options */}
-        <div className="mb-4 pt-4 border-t border-border space-y-2">
+        <div className="mb-4 pt-4 border-t border-border space-y-2" onClick={(e) => e.stopPropagation()}>
           <p className="text-xs text-muted-foreground">Choose how you’d like to pay</p>
           <div className="flex flex-col gap-1 text-xs sm:text-sm">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -204,7 +205,7 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
         </div>
 
         {/* Price & CTA */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 pt-4 border-t border-border">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 pt-4 border-t border-border" onClick={(e) => e.stopPropagation()}>
           <div>
             <span className="text-xl sm:text-2xl font-serif font-medium text-primary">£{course.price}</span>
           </div>
@@ -278,6 +279,8 @@ export function CoursesSection({ showAll = false }: { showAll?: boolean }) {
   const [headerRef, headerVisible] = useScrollReveal()
   const [courses, setCourses] = useState<Course[]>(fallbackCourses)
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [maxPriceFilter, setMaxPriceFilter] = useState<number | null>(null)
 
   useEffect(() => {
     fetch("/api/courses")
@@ -290,6 +293,19 @@ export function CoursesSection({ showAll = false }: { showAll?: boolean }) {
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (!courses.length || !showAll) return
+    const highestPrice = Math.max(...courses.map((c) => c.price))
+    setMaxPriceFilter(highestPrice)
+  }, [courses, showAll])
+
+  const highestPrice = courses.length ? Math.max(...courses.map((c) => c.price)) : 0
+  const filteredCourses = courses.filter((course) => {
+    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase().trim())
+    const withinPrice = maxPriceFilter == null ? true : course.price <= maxPriceFilter
+    return matchesSearch && withinPrice
+  })
 
   return (
     <section className="py-24 lg:py-32 bg-background">
@@ -314,11 +330,44 @@ export function CoursesSection({ showAll = false }: { showAll?: boolean }) {
           </div>
         ) : (
         <>
+        {showAll && (
+          <div className="mb-8 grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Search course</label>
+              <Input
+                placeholder="Search by course name"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-foreground">Max price</label>
+                <span className="text-sm text-muted-foreground">
+                  £{Math.round(maxPriceFilter ?? highestPrice)}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={Math.max(100, Math.round(highestPrice))}
+                value={Math.round(maxPriceFilter ?? highestPrice)}
+                onChange={(e) => setMaxPriceFilter(Number(e.target.value))}
+                className="w-full accent-primary"
+              />
+            </div>
+          </div>
+        )}
+
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course, index) => (
+          {filteredCourses.map((course, index) => (
             <CourseCard key={course.id} course={course} index={index} />
           ))}
         </div>
+
+        {showAll && filteredCourses.length === 0 && (
+          <p className="text-center text-muted-foreground mt-8">No courses match your filters.</p>
+        )}
 
         {/* CTA - hide on courses page when showing all */}
         {!showAll && (

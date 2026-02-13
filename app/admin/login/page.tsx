@@ -48,7 +48,7 @@ export default function AdminLogin() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@luxebeauty.com"
+                placeholder="Enter email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -74,9 +74,6 @@ export default function AdminLogin() {
             </Button>
           </form>
 
-          <p className="text-xs text-muted-foreground text-center mt-6">
-            Default: admin@luxebeauty.com / admin123
-          </p>
         </div>
       </div>
     </div>
