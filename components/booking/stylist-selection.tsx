@@ -31,6 +31,18 @@ type StylistSelectionProps = {
   onBack: () => void
 }
 
+function stylistMatchesCategory(specialty: string, serviceCategory: string): boolean {
+  const spec = (specialty || "").trim().toLowerCase()
+  const cat = (serviceCategory || "").trim().toLowerCase()
+
+  if (spec === "all" || cat === "all") return true
+  if (cat === "nails" || cat === "manicure") return spec.includes("nails") || spec.includes("manicure")
+  if (cat === "pedicure") return spec.includes("pedicure") || spec.includes("foot") || spec.includes("feet")
+  if (cat === "treatments" || cat === "treatment") return spec.includes("treatment") || spec.includes("beauty")
+
+  return spec === cat
+}
+
 export function StylistSelection({
   selectedStylist,
   serviceCategory,
@@ -48,21 +60,11 @@ export function StylistSelection({
   const fetchStylists = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/stylists?category=${serviceCategory || 'all'}`)
+      const response = await fetch(`/api/stylists?isActive=true`)
       const data = await response.json()
       
       if (data.success) {
-        // Add "Any Available" option
-        const anyAvailable: Stylist = {
-          _id: "any-available",
-          name: "Any Available",
-          image: "/placeholder.svg?height=200&width=200",
-          specialty: "all",
-          rating: 5.0,
-          experience: "",
-          bio: "We'll match you with the best available stylist",
-        }
-        setStylists([...data.stylists, anyAvailable])
+        setStylists(data.stylists || [])
       }
     } catch (error) {
       console.error("Error fetching stylists:", error)
@@ -73,8 +75,12 @@ export function StylistSelection({
     }
   }
 
-  // Filter stylists by service category, always include "Any Available"
-  const availableStylists = stylists.filter((s) => s.specialty === serviceCategory || s.specialty === "all")
+  // Show all active stylists; keep best category matches at the top.
+  const availableStylists = [...stylists].sort((a, b) => {
+    const aMatch = stylistMatchesCategory(a.specialty, serviceCategory) ? 1 : 0
+    const bMatch = stylistMatchesCategory(b.specialty, serviceCategory) ? 1 : 0
+    return bMatch - aMatch
+  })
 
   if (isLoading) {
     return (
