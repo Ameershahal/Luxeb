@@ -6,14 +6,6 @@ import { Input } from "@/components/ui/input"
 import { Plus, Trash2, Upload, Edit, Loader2, X } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,10 +41,7 @@ export default function AdminGallery() {
   const { toast } = useToast()
 
   const [formData, setFormData] = useState({
-    title: "",
-    category: "nails" as "nails" | "beauty",
     image: "",
-    description: "",
   })
 
   useEffect(() => {
@@ -147,11 +136,24 @@ export default function AdminGallery() {
         : "/api/admin/gallery"
       
       const method = selectedItem ? "PUT" : "POST"
+      const payload = selectedItem
+        ? {
+            image: formData.image,
+            title: selectedItem.title || "Gallery Image",
+            category: selectedItem.category || "nails",
+            description: selectedItem.description || "",
+          }
+        : {
+            image: formData.image,
+            title: "Gallery Image",
+            category: "nails",
+            description: "",
+          }
 
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()
@@ -222,10 +224,7 @@ export default function AdminGallery() {
     if (item) {
       setSelectedItem(item)
       setFormData({
-        title: item.title,
-        category: item.category,
         image: item.image,
-        description: item.description || "",
       })
       setPreviewImage(item.image)
     } else {
@@ -237,10 +236,7 @@ export default function AdminGallery() {
 
   const resetForm = () => {
     setFormData({
-      title: "",
-      category: "nails",
       image: "",
-      description: "",
     })
     setPreviewImage(null)
     if (fileInputRef.current) {
@@ -364,55 +360,13 @@ export default function AdminGallery() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {selectedItem ? "Edit Gallery Image" : "Add Gallery Image"}
+              {selectedItem ? "Edit Gallery Image" : "Upload Gallery Image"}
             </DialogTitle>
             <DialogDescription>
-              {selectedItem
-                ? "Update gallery image information"
-                : "Upload a new image to your portfolio"}
+              {selectedItem ? "Update image" : "Upload image"}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Image Title *</Label>
-              <Input
-                id="title"
-                placeholder="Enter image title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">Category *</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value: "nails" | "beauty") =>
-                  setFormData({ ...formData, category: value })
-                }
-              >
-                <SelectTrigger id="category">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="nails">Nails</SelectItem>
-                  <SelectItem value="beauty">Beauty</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Optional description..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-              />
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="image">
                 Image URL or upload to Cloudinary <span className="text-destructive">*</span>
