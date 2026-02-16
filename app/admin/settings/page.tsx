@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -7,6 +8,83 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function AdminSettings() {
+  const [socialLinks, setSocialLinks] = useState({
+    instagram: "",
+    facebook: "",
+    tiktok: "",
+  })
+  const [isSavingLinks, setIsSavingLinks] = useState(false)
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
+
+  useEffect(() => {
+    const loadSocialLinks = async () => {
+      try {
+        const res = await fetch("/api/admin/settings")
+        const data = await res.json()
+        if (data.success && data.socialLinks) {
+          setSocialLinks({
+            instagram: data.socialLinks.instagram || "",
+            facebook: data.socialLinks.facebook || "",
+            tiktok: data.socialLinks.tiktok || "",
+          })
+        }
+      } catch {
+        // keep empty defaults
+      }
+    }
+    loadSocialLinks()
+  }, [])
+
+  const saveSocialLinks = async () => {
+    setIsSavingLinks(true)
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(socialLinks),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to save links")
+      }
+      alert("Social links saved")
+    } catch (error: any) {
+      alert(error.message || "Failed to save links")
+    } finally {
+      setIsSavingLinks(false)
+    }
+  }
+
+  const updatePassword = async () => {
+    setIsUpdatingPassword(true)
+    try {
+      const res = await fetch("/api/admin/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(passwordForm),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to update password")
+      }
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      })
+      alert("Password updated successfully")
+    } catch (error: any) {
+      alert(error.message || "Failed to update password")
+    } finally {
+      setIsUpdatingPassword(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -76,13 +154,45 @@ export default function AdminSettings() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="instagram">Instagram URL</Label>
-              <Input id="instagram" placeholder="https://instagram.com/..." />
+              <Input
+                id="instagram"
+                placeholder="https://instagram.com/..."
+                value={socialLinks.instagram}
+                onChange={(e) =>
+                  setSocialLinks((prev) => ({ ...prev, instagram: e.target.value }))
+                }
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="facebook">Facebook URL</Label>
-              <Input id="facebook" placeholder="https://facebook.com/..." />
+              <Input
+                id="facebook"
+                placeholder="https://facebook.com/..."
+                value={socialLinks.facebook}
+                onChange={(e) =>
+                  setSocialLinks((prev) => ({ ...prev, facebook: e.target.value }))
+                }
+              />
             </div>
-            <Button className="w-full bg-primary text-primary-foreground">Save Links</Button>
+            <div className="space-y-2">
+              <Label htmlFor="tiktok">TikTok URL</Label>
+              <Input
+                id="tiktok"
+                placeholder="https://www.tiktok.com/@..."
+                value={socialLinks.tiktok}
+                onChange={(e) =>
+                  setSocialLinks((prev) => ({ ...prev, tiktok: e.target.value }))
+                }
+              />
+            </div>
+            <Button
+              type="button"
+              onClick={saveSocialLinks}
+              disabled={isSavingLinks}
+              className="w-full bg-primary text-primary-foreground"
+            >
+              {isSavingLinks ? "Saving..." : "Save Links"}
+            </Button>
           </CardContent>
         </Card>
 
@@ -95,17 +205,45 @@ export default function AdminSettings() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="currentPassword">Current Password</Label>
-              <Input id="currentPassword" type="password" />
+              <Input
+                id="currentPassword"
+                type="password"
+                value={passwordForm.currentPassword}
+                onChange={(e) =>
+                  setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))
+                }
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="newPassword">New Password</Label>
-              <Input id="newPassword" type="password" />
+              <Input
+                id="newPassword"
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) =>
+                  setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))
+                }
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input id="confirmPassword" type="password" />
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) =>
+                  setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                }
+              />
             </div>
-            <Button className="w-full bg-primary text-primary-foreground">Update Password</Button>
+            <Button
+              type="button"
+              onClick={updatePassword}
+              disabled={isUpdatingPassword}
+              className="w-full bg-primary text-primary-foreground"
+            >
+              {isUpdatingPassword ? "Updating..." : "Update Password"}
+            </Button>
           </CardContent>
         </Card>
       </div>

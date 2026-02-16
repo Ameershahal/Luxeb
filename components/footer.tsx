@@ -20,6 +20,11 @@ type ServiceItem = { id: string; name: string; category: string }
 
 export function Footer() {
   const [services, setServices] = useState<ServiceItem[]>([])
+  const [socialLinks, setSocialLinks] = useState({
+    instagram: "#",
+    facebook: "#",
+    tiktok: "#",
+  })
 
   useEffect(() => {
     fetch("/api/services")
@@ -33,6 +38,21 @@ export function Footer() {
               category: s.category || "",
             }))
           )
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.socialLinks) {
+          setSocialLinks({
+            instagram: data.socialLinks.instagram || "#",
+            facebook: data.socialLinks.facebook || "#",
+            tiktok: data.socialLinks.tiktok || "#",
+          })
         }
       })
       .catch(() => {})
@@ -55,21 +75,27 @@ export function Footer() {
             {/* Social Links */}
             <div className="flex gap-3 sm:gap-4">
               <a
-                href="#"
+                href={socialLinks.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-secondary-foreground/10 flex items-center justify-center hover:bg-secondary-foreground/20 transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram className="h-4 w-4 sm:h-5 sm:w-5" />
               </a>
               <a
-                href="#"
+                href={socialLinks.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-secondary-foreground/10 flex items-center justify-center hover:bg-secondary-foreground/20 transition-colors"
                 aria-label="Facebook"
               >
                 <Facebook className="h-4 w-4 sm:h-5 sm:w-5" />
               </a>
               <a
-                href="#"
+                href={socialLinks.tiktok}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-secondary-foreground/10 flex items-center justify-center hover:bg-secondary-foreground/20 transition-colors"
                 aria-label="TikTok"
               >

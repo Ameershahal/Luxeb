@@ -18,13 +18,24 @@ export default function AdminLogin() {
     setError("")
     setLoading(true)
 
-    // Simple authentication (in production, use proper auth)
-    if (email === "admin@luxebeauty.com" && password === "admin123") {
-      // Store auth token (in production, use secure tokens)
+    try {
+      const res = await fetch("/api/admin/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        setError(data.error || "Invalid credentials")
+        setLoading(false)
+        return
+      }
+
       localStorage.setItem("adminAuth", "true")
       router.push("/admin/dashboard")
-    } else {
-      setError("Invalid credentials")
+    } catch {
+      setError("Login failed. Please try again.")
       setLoading(false)
     }
   }

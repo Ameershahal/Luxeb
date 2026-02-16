@@ -34,10 +34,12 @@ export default function AdminGallery() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [isBulkUploading, setIsBulkUploading] = useState(false)
   const [isSeeding, setIsSeeding] = useState(false)
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const multiFileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
 
   const [formData, setFormData] = useState({
@@ -123,6 +125,87 @@ export default function AdminGallery() {
       })
     } finally {
       setIsUploading(false)
+    }
+  }
+
+  const handleBulkFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || [])
+    if (!selectedFiles.length) return
+
+    const imageFiles = selectedFiles.filter((file) => file.type.startsWith("image/"))
+    const skippedCount = selectedFiles.length - imageFiles.length
+
+    if (!imageFiles.length) {
+      toast({
+        title: "Error",
+        description: "Please select image files only.",
+        variant: "destructive",
+      })
+      e.target.value = ""
+      return
+    }
+
+    setIsBulkUploading(true)
+
+    let uploadedCount = 0
+    let failedCount = 0
+
+    try {
+      for (const file of imageFiles) {
+        try {
+          const uploadPayload = new FormData()
+          uploadPayload.append("file", file)
+
+          const uploadResponse = await fetch("/api/upload", {
+            method: "POST",
+            body: uploadPayload,
+          })
+
+          const uploadData = await uploadResponse.json()
+          if (!uploadData.success || !uploadData.url) {
+            throw new Error(uploadData.error || "Upload failed")
+          }
+
+          const titleFromName =
+            file.name.replace(/\.[^/.]+$/, "").replace(/[_-]+/g, " ").trim() || "Gallery Image"
+
+          const createResponse = await fetch("/api/admin/gallery", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              image: uploadData.url,
+              title: titleFromName,
+              category: "nails",
+              description: "",
+            }),
+          })
+
+          const createData = await createResponse.json()
+          if (!createData.success) {
+            throw new Error(createData.error || "Failed to save gallery item")
+          }
+
+          uploadedCount++
+        } catch {
+          failedCount++
+        }
+      }
+
+      if (uploadedCount > 0) {
+        await fetchGalleryItems()
+      }
+
+      toast({
+        title: "Bulk upload complete",
+        description: `Uploaded ${uploadedCount} image(s)${
+          failedCount || skippedCount
+            ? `, failed ${failedCount}${skippedCount ? `, skipped ${skippedCount}` : ""}`
+            : ""
+        }.`,
+      })
+    } finally {
+      setIsBulkUploading(false)
+      e.target.value = ""
     }
   }
 
@@ -252,47 +335,30 @@ export default function AdminGallery() {
           <p className="text-muted-foreground">Manage your portfolio images</p>
         </div>
         <div className="flex gap-2">
+          <input
+            ref={multiFileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleBulkFileSelect}
+            className="hidden"
+            id="multi-file-upload"
+          />
           <Button
             variant="outline"
-            onClick={async () => {
-              setIsSeeding(true)
-              try {
-                const response = await fetch("/api/admin/seed-gallery", {
-                  method: "POST",
-                })
-                const data = await response.json()
-                if (data.success) {
-                  toast({
-                    title: "Gallery items added",
-                    description: `Created ${data.created} items, skipped ${data.skipped} existing ones`,
-                  })
-                  fetchGalleryItems()
-                } else {
-                  toast({
-                    title: "Error",
-                    description: data.error || "Failed to seed gallery",
-                    variant: "destructive",
-                  })
-                }
-              } catch (error) {
-                toast({
-                  title: "Error",
-                  description: "Failed to seed gallery",
-                  variant: "destructive",
-                })
-              } finally {
-                setIsSeeding(false)
-              }
-            }}
-            disabled={isSeeding}
+            onClick={() => multiFileInputRef.current?.click()}
+            disabled={isBulkUploading}
           >
-            {isSeeding ? (
+            {isBulkUploading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Adding...
+                Uploading...
               </>
             ) : (
-              "Add Existing Images"
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Upload Multiple
+              </>
             )}
           </Button>
           <Button onClick={() => openDialog()} className="bg-primary text-primary-foreground hover:bg-primary/90">
