@@ -36,7 +36,7 @@ export async function PUT(
     await connectDB()
     const { id } = await params
     const body = await request.json()
-    const { name, description, isActive } = body
+    const { name, description, isActive, stylistIds } = body
 
     const updateData: any = {}
     if (name) {
@@ -45,6 +45,7 @@ export async function PUT(
       updateData.slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     }
     if (description !== undefined) updateData.description = description
+    if (stylistIds !== undefined) updateData.stylistIds = Array.isArray(stylistIds) ? stylistIds : []
     if (isActive !== undefined) updateData.isActive = isActive
 
     const category = await Category.findByIdAndUpdate(

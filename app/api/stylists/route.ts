@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Stylist from '@/lib/models/Stylist'
+import Category from '@/lib/models/Category'
 
 function getCategoryMatchers(category: string) {
   const c = category.trim().toLowerCase()
@@ -30,8 +31,23 @@ export async function GET(request: NextRequest) {
 
     const query: any = { isActive }
     if (category && category !== 'all') {
-      const matchers = getCategoryMatchers(category)
-      query.$or = matchers.map((regex) => ({ specialty: regex }))
+      // Prefer explicit category->stylist assignment from admin.
+      const normalized = category.trim().toLowerCase()
+      const assignedCategory = await Category.findOne({
+        $or: [{ slug: normalized }, { name: new RegExp(`^${normalized}$`, 'i') }],
+      })
+
+      const assignedStylistIds = Array.isArray(assignedCategory?.stylistIds)
+        ? assignedCategory.stylistIds.filter(Boolean)
+        : []
+
+      if (assignedStylistIds.length > 0) {
+        query._id = { $in: assignedStylistIds }
+      } else {
+        // Backward-compatible fallback to specialty matching.
+        const matchers = getCategoryMatchers(category)
+        query.$or = matchers.map((regex) => ({ specialty: regex }))
+      }
     }
 
     const stylists = await Stylist.find(query).sort({ rating: -1 })

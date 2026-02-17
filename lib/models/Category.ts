@@ -4,6 +4,7 @@ export interface ICategory extends Document {
   name: string
   slug: string
   description?: string
+  stylistIds?: string[]
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -20,6 +21,7 @@ const CategorySchema = new Schema<ICategory>(
       sparse: true
     },
     description: { type: String, default: '' },
+    stylistIds: [{ type: Schema.Types.ObjectId, ref: 'Stylist' }],
     isActive: { type: Boolean, default: true },
   },
   {

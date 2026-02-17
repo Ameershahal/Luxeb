@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Calendar,
   Image,
+  MessageSquare,
   Settings,
   LogOut,
   Menu,
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/admin/courses", label: "Courses", icon: GraduationCap },
   { href: "/admin/bookings", label: "Bookings", icon: Calendar },
   { href: "/admin/gallery", label: "Gallery", icon: Image },
+  { href: "/admin/reviews", label: "Reviews", icon: MessageSquare },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ]
 

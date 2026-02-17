@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB()
     const body = await request.json()
-    const { name, description, isActive } = body
+    const { name, description, isActive, stylistIds } = body
 
     if (!name) {
       return NextResponse.json(
@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
       name,
       slug,
       description: description || '',
+      stylistIds: Array.isArray(stylistIds) ? stylistIds : [],
       isActive: isActive !== undefined ? isActive : true,
     })
 

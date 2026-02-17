@@ -5,42 +5,54 @@ import { ChevronLeft, ChevronRight, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 
-const testimonials = [
-  {
-    id: 1,
-    name: "Alexandra M.",
-    location: "New York",
-    image: "/alexandra-m.png",
-    rating: 5,
-    text: "Luxe Beauty & Training has transformed my self-care routine. The attention to detail is extraordinary—from the moment you walk in, you're treated like royalty. My nails have never looked better.",
-    service: "Nail Artistry",
-  },
-  {
-    id: 2,
-    name: "Catherine R.",
-    location: "Miami",
-    image: "/catherine-r.png",
-    rating: 5,
-    text: "An oasis of luxury in the city. The products they use are exceptional, and the results speak for themselves. This is the only place I trust for special occasions.",
-    service: "Beauty Treatments",
-  },
-  {
-    id: 3,
-    name: "Sophie L.",
-    location: "London",
-    image: "/victoria-s.png",
-    rating: 5,
-    text: "From my first visit I knew this was something special. The team is incredibly skilled and the atmosphere is so relaxing. I've recommended Luxe Beauty to all my friends.",
-    service: "Nail Artistry",
-  },
-]
+type Testimonial = {
+  id: string | number
+  name: string
+  location: string
+  image: string
+  rating: number
+  text: string
+  service: string
+}
 
 export function TestimonialsSection() {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [headerRef, headerVisible] = useScrollReveal()
   const carouselRef = useRef<HTMLDivElement>(null)
   const touchStartX = useRef<number | null>(null)
   const touchEndX = useRef<number | null>(null)
+
+  useEffect(() => {
+    fetch("/api/reviews")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) {
+          setTestimonials(
+            data.reviews.map((r: any) => ({
+              id: r._id || r.id,
+              name: r.name,
+              location: r.location || "",
+              image: r.image || "/placeholder.svg",
+              rating: Number(r.rating) || 5,
+              text: r.text || "",
+              service: r.service || "",
+            })),
+          )
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (currentIndex >= testimonials.length) {
+      setCurrentIndex(0)
+    }
+  }, [currentIndex, testimonials.length])
+
+  if (testimonials.length === 0) {
+    return null
+  }
 
   const next = () => {
     setCurrentIndex((prev) => {
@@ -198,7 +210,7 @@ function TestimonialCard({
   isActive, 
   onMouseEnter 
 }: { 
-  testimonial: typeof testimonials[0]
+  testimonial: Testimonial
   index: number
   isActive: boolean
   onMouseEnter: () => void

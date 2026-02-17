@@ -87,6 +87,7 @@ interface Category {
   name: string
   slug: string
   description?: string
+  stylistIds?: string[]
   isActive: boolean
 }
 
@@ -155,6 +156,7 @@ export default function AdminBookings() {
   const [categoryFormData, setCategoryFormData] = useState({
     name: "",
     description: "",
+    stylistIds: [] as string[],
     isActive: true,
   })
 
@@ -209,6 +211,7 @@ export default function AdminBookings() {
   useEffect(() => {
     if (activeTab === "categories") {
       fetchCategories()
+      fetchStylists()
     } else if (activeTab === "services") {
       // Also fetch categories when on services tab to populate dropdown
       fetchCategories()
@@ -896,6 +899,9 @@ export default function AdminBookings() {
       setCategoryFormData({
         name: category.name,
         description: category.description || "",
+        stylistIds: Array.isArray(category.stylistIds)
+          ? category.stylistIds.map((id) => String(id))
+          : [],
         isActive: category.isActive,
       })
     } else {
@@ -909,6 +915,7 @@ export default function AdminBookings() {
     setCategoryFormData({
       name: "",
       description: "",
+      stylistIds: [],
       isActive: true,
     })
   }
@@ -1815,6 +1822,41 @@ export default function AdminBookings() {
                 placeholder="Brief description of the category..."
                 rows={3}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Stylists for this category</Label>
+              {stylists.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No stylists found. Add stylists first.</p>
+              ) : (
+                <div className="grid gap-2 max-h-48 overflow-y-auto rounded-md border border-border p-3">
+                  {stylists.map((stylist) => {
+                    const checked = categoryFormData.stylistIds.includes(stylist._id)
+                    return (
+                      <label key={stylist._id} className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(value) => {
+                            const isChecked = value === true
+                            setCategoryFormData((prev) => ({
+                              ...prev,
+                              stylistIds: isChecked
+                                ? prev.stylistIds.includes(stylist._id)
+                                  ? prev.stylistIds
+                                  : [...prev.stylistIds, stylist._id]
+                                : prev.stylistIds.filter((id) => id !== stylist._id),
+                            }))
+                          }}
+                        />
+                        <span className="text-sm">{stylist.name}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Only selected stylists will appear in booking for this category.
+              </p>
             </div>
 
             <div className="flex items-center space-x-2">

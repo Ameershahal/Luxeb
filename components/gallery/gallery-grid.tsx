@@ -95,10 +95,7 @@ export function GalleryGrid() {
                 )}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-secondary/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <p className="text-xs uppercase tracking-wider text-secondary-foreground/70 mb-1">{item.category}</p>
-                  <h3 className="font-medium text-secondary-foreground">{item.title}</h3>
-                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-4" />
               </div>
             </button>
           ))}
@@ -154,10 +151,6 @@ export function GalleryGrid() {
               className="w-full max-h-[70vh] object-contain rounded-xl"
             />
             <div className="mt-4 text-center">
-              <p className="text-xs uppercase tracking-wider text-secondary-foreground/70 mb-1">
-                {currentItem.category}
-              </p>
-              <h3 className="font-serif text-xl font-medium text-secondary-foreground">{currentItem.title}</h3>
               <p className="text-secondary-foreground/70 mt-1">{currentItem.description}</p>
             </div>
           </div>
