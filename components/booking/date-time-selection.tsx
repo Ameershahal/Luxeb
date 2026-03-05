@@ -106,7 +106,7 @@ export function DateTimeSelection({ selectedDateTime, stylistId, onSelect, onNex
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const minDate = new Date(today)
-    minDate.setDate(minDate.getDate() + 2) // 48 hours advance booking
+    minDate.setDate(minDate.getDate() + 1) // 24 hours advance booking
     return date < minDate || date.getDay() === 0 // No Sundays
   }
 
