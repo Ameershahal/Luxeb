@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Booking from '@/lib/models/Booking'
+import { sendBookingNotification } from '@/lib/email'
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,7 +38,23 @@ export async function POST(request: NextRequest) {
     await connectDB()
 
     const body = await request.json()
-    const booking = await Booking.create(body) 
+    const booking = await Booking.create(body)
+
+    // Notify salon owner (do not fail booking create if email fails)
+    try {
+      await sendBookingNotification({
+        confirmationNumber: booking.confirmationNumber,
+        client: booking.client,
+        services: booking.services,
+        service: booking.service,
+        stylist: booking.stylist,
+        dateTime: booking.dateTime,
+        payment: booking.payment,
+        status: booking.status,
+      })
+    } catch (emailError: any) {
+      console.error('Booking notification email failed:', emailError?.message || emailError)
+    }
 
     return NextResponse.json({ booking }, { status: 201 })
   } catch (error: any) {

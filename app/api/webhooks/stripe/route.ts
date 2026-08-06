@@ -5,6 +5,7 @@ import connectDB from '@/lib/mongodb'
 import Booking from '@/lib/models/Booking'
 import Order from '@/lib/models/Order'
 import CourseEnrollment from '@/lib/models/CourseEnrollment'
+import { sendBookingNotification } from '@/lib/email'
 
 // Disable body parsing, need raw body for webhook signature verification
 export const runtime = 'nodejs'
@@ -103,8 +104,24 @@ export async function POST(request: NextRequest) {
             status: 'confirmed' as const,
           }
 
-          await Booking.create(bookingData)
+          const booking = await Booking.create(bookingData)
           console.log('Booking saved to database:', session.metadata)
+
+          // Notify salon owner (do not fail webhook if email fails)
+          try {
+            await sendBookingNotification({
+              confirmationNumber: booking.confirmationNumber,
+              client: booking.client,
+              services: booking.services,
+              service: booking.service,
+              stylist: booking.stylist,
+              dateTime: booking.dateTime,
+              payment: booking.payment,
+              status: booking.status,
+            })
+          } catch (emailError: any) {
+            console.error('Booking notification email failed:', emailError?.message || emailError)
+          }
         }
         
         // Save order if it's a product purchase
