@@ -74,6 +74,21 @@ export async function POST(request: NextRequest) {
               price: session.amount_total ? session.amount_total / 100 : 0,
             }]
           }
+          // Fallback: use Stripe line items if metadata services are missing
+          if (services.length === 0) {
+            try {
+              const lineItems = await stripe.checkout.sessions.listLineItems(session.id)
+              services = lineItems.data.map((item) => ({
+                id: item.id,
+                name: item.description || item.price?.product?.name || 'Service',
+                category: session.metadata?.serviceCategory || 'Booking',
+                duration: 0,
+                price: item.amount_total ? item.amount_total / 100 : 0,
+              }))
+            } catch {
+              services = []
+            }
+          }
           const bookingData = {
             service: services[0] || undefined,
             services,
@@ -109,7 +124,7 @@ export async function POST(request: NextRequest) {
 
           // Notify salon owner (do not fail webhook if email fails)
           try {
-            await sendBookingNotification({
+            const emailResult = await sendBookingNotification({
               confirmationNumber: booking.confirmationNumber,
               client: booking.client,
               services: booking.services,
@@ -119,6 +134,9 @@ export async function POST(request: NextRequest) {
               payment: booking.payment,
               status: booking.status,
             })
+            if (!emailResult.ok) {
+              console.error('Booking notification email failed:', emailResult.error)
+            }
           } catch (emailError: any) {
             console.error('Booking notification email failed:', emailError?.message || emailError)
           }

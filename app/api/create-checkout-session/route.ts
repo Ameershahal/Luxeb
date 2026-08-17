@@ -32,13 +32,14 @@ export async function POST(request: NextRequest) {
     // Build line items for Stripe
     const lineItems = items.map((item: any) => {
       const imageUrl = getAbsoluteImageUrl(item.image)
-      
+      const description = item.description?.trim() || item.name || 'Booking service'
+
       return {
         price_data: {
           currency: 'gbp',
           product_data: {
             name: item.name,
-            description: item.description || '',
+            description,
             // Only include images array if we have a valid URL
             ...(imageUrl ? { images: [imageUrl] } : {}),
           },
