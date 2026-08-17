@@ -110,12 +110,11 @@ const BookingSchema = new Schema<IBooking>(
   }
 )
 
-// Generate confirmation number before validation/save
-BookingSchema.pre('validate', function (next) {
+// Generate confirmation number before validation/save (Mongoose 9: no next callback)
+BookingSchema.pre('validate', function () {
   if (!this.confirmationNumber) {
     this.confirmationNumber = `LB-${Date.now().toString(36).toUpperCase()}`
   }
-  next()
 })
 
 export default mongoose.models.Booking || mongoose.model<IBooking>('Booking', BookingSchema)
