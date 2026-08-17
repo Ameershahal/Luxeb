@@ -70,3 +70,34 @@ export function resolvePreselect(
     ...(size && { size }),
   }
 }
+
+export const SALON_TIMEZONE = 'Europe/London'
+
+/** YYYY-MM-DD in salon timezone */
+export function toDateKey(date: Date): string {
+  return date.toLocaleDateString('en-CA', { timeZone: SALON_TIMEZONE })
+}
+
+/** Build YYYY-MM-DD from local calendar parts (date picker selection) */
+export function toDateKeyFromLocal(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+export function normalizeTimeSlot(time: string): string {
+  const trimmed = time.trim()
+  const match = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i)
+  if (!match) return trimmed
+  return `${parseInt(match[1], 10)}:${match[2]} ${match[3].toUpperCase()}`
+}
+
+export function convertTo24Hour(time12h: string): string {
+  const [time, period] = time12h.split(' ')
+  const [hours, minutes] = time.split(':')
+  let hour24 = parseInt(hours, 10)
+  if (period === 'PM' && hour24 !== 12) hour24 += 12
+  if (period === 'AM' && hour24 === 12) hour24 = 0
+  return `${hour24.toString().padStart(2, '0')}:${minutes}`
+}

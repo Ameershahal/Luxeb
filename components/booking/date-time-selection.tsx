@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { convertTo24Hour, normalizeTimeSlot, toDateKeyFromLocal } from "@/lib/booking-utils"
 
 type AvailableTime = {
   day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
@@ -54,6 +55,8 @@ export function DateTimeSelection({ selectedDateTime, stylistId, onSelect, onNex
   const [selectedTime, setSelectedTime] = useState<string | null>(selectedDateTime.time)
   const [stylist, setStylist] = useState<Stylist | null>(null)
   const [isLoadingStylist, setIsLoadingStylist] = useState(false)
+  const [bookedTimes, setBookedTimes] = useState<string[]>([])
+  const [isLoadingBooked, setIsLoadingBooked] = useState(false)
 
   // Fetch stylist data when stylistId changes
   useEffect(() => {
@@ -63,6 +66,50 @@ export function DateTimeSelection({ selectedDateTime, stylistId, onSelect, onNex
       setStylist(null)
     }
   }, [stylistId])
+
+  // Fetch already-booked slots for this stylist on the selected date
+  useEffect(() => {
+    if (!selectedDate || !stylistId || stylistId === "any-available") {
+      setBookedTimes([])
+      return
+    }
+
+    const dateKey = toDateKeyFromLocal(selectedDate)
+    let cancelled = false
+
+    async function fetchBookedTimes() {
+      try {
+        setIsLoadingBooked(true)
+        const response = await fetch(
+          `/api/bookings/availability?stylistId=${encodeURIComponent(stylistId)}&date=${dateKey}`
+        )
+        const data = await response.json()
+        if (!cancelled && data.success) {
+          setBookedTimes(data.bookedTimes || [])
+        }
+      } catch (error) {
+        console.error("Error fetching booked times:", error)
+        if (!cancelled) setBookedTimes([])
+      } finally {
+        if (!cancelled) setIsLoadingBooked(false)
+      }
+    }
+
+    fetchBookedTimes()
+    return () => {
+      cancelled = true
+    }
+  }, [selectedDate, stylistId])
+
+  // Clear selection if the chosen time becomes unavailable
+  useEffect(() => {
+    if (!selectedTime || bookedTimes.length === 0) return
+    if (bookedTimes.includes(normalizeTimeSlot(selectedTime))) {
+      setSelectedTime(null)
+      onSelect({ date: selectedDate, time: null })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookedTimes, selectedTime, selectedDate])
 
   const fetchStylist = async () => {
     try {
@@ -116,23 +163,7 @@ export function DateTimeSelection({ selectedDateTime, stylistId, onSelect, onNex
   }
 
   // Convert 12-hour time to 24-hour format for comparison
-  const convertTo24Hour = (time12h: string): string => {
-    const [time, period] = time12h.split(' ')
-    const [hours, minutes] = time.split(':')
-    let hour24 = parseInt(hours)
-    if (period === 'PM' && hour24 !== 12) hour24 += 12
-    if (period === 'AM' && hour24 === 12) hour24 = 0
-    return `${hour24.toString().padStart(2, '0')}:${minutes}`
-  }
-
-  // Convert 24-hour time to 12-hour format
-  const convertTo12Hour = (time24h: string): string => {
-    const [hours, minutes] = time24h.split(':')
-    const hour24 = parseInt(hours)
-    const hour12 = hour24 % 12 || 12
-    const period = hour24 >= 12 ? 'PM' : 'AM'
-    return `${hour12}:${minutes} ${period}`
-  }
+  const convertTimeTo24Hour = convertTo24Hour
 
   // Get day name from date
   const getDayName = (date: Date): string => {
@@ -144,14 +175,15 @@ export function DateTimeSelection({ selectedDateTime, stylistId, onSelect, onNex
   const availableTimeSlots = useMemo(() => {
     if (!selectedDate) return []
     
-    // If "Any Available" is selected, all times are available
+    // If "Any Available" is selected, hide globally booked times is skipped
     if (stylistId === "any-available" || !stylist) {
       return timeSlots
     }
 
-    // If stylist has no available times set, allow all times
+    // If stylist has no available times set, allow all unbooked times
     if (!stylist.availableTimes || stylist.availableTimes.length === 0) {
-      return timeSlots
+      const bookedSet = new Set(bookedTimes.map(normalizeTimeSlot))
+      return timeSlots.filter((slot) => !bookedSet.has(normalizeTimeSlot(slot)))
     }
 
     const dayName = getDayName(selectedDate)
@@ -164,12 +196,15 @@ export function DateTimeSelection({ selectedDateTime, stylistId, onSelect, onNex
       return []
     }
 
-    // Filter time slots that fall within the available range
+    // Filter time slots that fall within the available range and are not already booked
+    const bookedSet = new Set(bookedTimes.map(normalizeTimeSlot))
+
     return timeSlots.filter((timeSlot) => {
-      const time24h = convertTo24Hour(timeSlot)
+      if (bookedSet.has(normalizeTimeSlot(timeSlot))) return false
+      const time24h = convertTimeTo24Hour(timeSlot)
       return time24h >= daySchedule.startTime && time24h <= daySchedule.endTime
     })
-  }, [selectedDate, stylist, stylistId])
+  }, [selectedDate, stylist, stylistId, bookedTimes])
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date)
@@ -270,7 +305,7 @@ export function DateTimeSelection({ selectedDateTime, stylistId, onSelect, onNex
           </h3>
 
           {selectedDate ? (
-            isLoadingStylist ? (
+            isLoadingStylist || isLoadingBooked ? (
               <div className="h-48 flex items-center justify-center text-muted-foreground">
                 Loading available times...
               </div>

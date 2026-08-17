@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, formatAmountForStripe } from '@/lib/stripe'
+import { isTimeSlotBooked } from '@/lib/booking-availability'
+import { toDateKeyFromLocal } from '@/lib/booking-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +13,22 @@ export async function POST(request: NextRequest) {
         { error: 'No items provided' },
         { status: 400 }
       )
+    }
+
+    if (type === 'booking' && metadata?.stylistId && metadata.stylistId !== 'any-available') {
+      if (metadata.date && metadata.time) {
+        const taken = await isTimeSlotBooked(
+          metadata.stylistId,
+          toDateKeyFromLocal(new Date(metadata.date)),
+          metadata.time
+        )
+        if (taken) {
+          return NextResponse.json(
+            { error: 'This time slot is no longer available. Please choose another time.' },
+            { status: 409 }
+          )
+        }
+      }
     }
 
     // Helper function to convert relative URLs to absolute URLs

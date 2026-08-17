@@ -3,6 +3,8 @@ import connectDB from '@/lib/mongodb'
 import Booking from '@/lib/models/Booking'
 import { sendBookingNotification } from '@/lib/email'
 import { stripe } from '@/lib/stripe'
+import { isTimeSlotBooked } from '@/lib/booking-availability'
+import { toDateKeyFromLocal } from '@/lib/booking-utils'
 
 type BookingService = {
   id: string
@@ -128,6 +130,22 @@ export async function fulfillBookingFromSession(
 
   const services = await parseServicesFromSession(session)
   const bookingData = buildBookingData(session, services)
+
+  const stylistId = session.metadata?.stylistId
+  const bookingTime = session.metadata?.time
+  const bookingDate = session.metadata?.date
+
+  if (stylistId && stylistId !== 'any-available' && bookingTime && bookingDate) {
+    const taken = await isTimeSlotBooked(
+      stylistId,
+      toDateKeyFromLocal(new Date(bookingDate)),
+      bookingTime
+    )
+    if (taken) {
+      return { ok: false as const, error: 'This time slot is no longer available' }
+    }
+  }
+
   const booking = await Booking.create(bookingData)
   console.log('Booking saved to database:', session.id)
 
