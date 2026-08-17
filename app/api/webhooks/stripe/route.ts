@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import Stripe from 'stripe'
 import connectDB from '@/lib/mongodb'
-import Booking from '@/lib/models/Booking'
 import Order from '@/lib/models/Order'
 import CourseEnrollment from '@/lib/models/CourseEnrollment'
-import { sendBookingNotification } from '@/lib/email'
+import { fulfillBookingFromSession } from '@/lib/fulfill-booking'
 
 // Disable body parsing, need raw body for webhook signature verification
 export const runtime = 'nodejs'
@@ -57,89 +56,7 @@ export async function POST(request: NextRequest) {
       try {
         // Save booking if it's a booking payment
         if (session.metadata?.type === 'booking') {
-          let services: { id: string; name: string; category: string; duration: number; price: number }[] = []
-          if (session.metadata.servicesJson) {
-            try {
-              services = JSON.parse(session.metadata.servicesJson as string)
-            } catch {
-              services = []
-            }
-          }
-          if (services.length === 0 && session.metadata.serviceId) {
-            services = [{
-              id: session.metadata.serviceId || '',
-              name: session.metadata.serviceName || '',
-              category: session.metadata.serviceCategory || '',
-              duration: parseInt(session.metadata.serviceDuration || '0'),
-              price: session.amount_total ? session.amount_total / 100 : 0,
-            }]
-          }
-          // Fallback: use Stripe line items if metadata services are missing
-          if (services.length === 0) {
-            try {
-              const lineItems = await stripe.checkout.sessions.listLineItems(session.id)
-              services = lineItems.data.map((item) => ({
-                id: item.id,
-                name: item.description || item.price?.product?.name || 'Service',
-                category: session.metadata?.serviceCategory || 'Booking',
-                duration: 0,
-                price: item.amount_total ? item.amount_total / 100 : 0,
-              }))
-            } catch {
-              services = []
-            }
-          }
-          const bookingData = {
-            service: services[0] || undefined,
-            services,
-            stylist: session.metadata.stylistId ? {
-              id: session.metadata.stylistId,
-              name: session.metadata.stylistName || '',
-              image: session.metadata.stylistImage || '',
-              specialty: session.metadata.stylistSpecialty || '',
-            } : null,
-            dateTime: {
-              date: session.metadata.date ? new Date(session.metadata.date) : new Date(),
-              time: session.metadata.time || '',
-            },
-            client: {
-              firstName: session.metadata.clientName?.split(' ')[0] || '',
-              lastName: session.metadata.clientName?.split(' ').slice(1).join(' ') || '',
-              email: session.customer_email || session.metadata.email || '',
-              phone: session.metadata.phone || '',
-              notes: session.metadata.notes || '',
-            },
-            payment: {
-              stripeSessionId: session.id,
-              amount: session.amount_total ? session.amount_total / 100 : 0,
-              currency: session.currency || 'gbp',
-              status: 'completed' as const,
-              paidAt: new Date(),
-            },
-            status: 'confirmed' as const,
-          }
-
-          const booking = await Booking.create(bookingData)
-          console.log('Booking saved to database:', session.metadata)
-
-          // Notify salon owner (do not fail webhook if email fails)
-          try {
-            const emailResult = await sendBookingNotification({
-              confirmationNumber: booking.confirmationNumber,
-              client: booking.client,
-              services: booking.services,
-              service: booking.service,
-              stylist: booking.stylist,
-              dateTime: booking.dateTime,
-              payment: booking.payment,
-              status: booking.status,
-            })
-            if (!emailResult.ok) {
-              console.error('Booking notification email failed:', emailResult.error)
-            }
-          } catch (emailError: any) {
-            console.error('Booking notification email failed:', emailError?.message || emailError)
-          }
+          await fulfillBookingFromSession(session)
         }
         
         // Save order if it's a product purchase

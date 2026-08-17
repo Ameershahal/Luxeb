@@ -16,13 +16,30 @@ function PaymentSuccessContent() {
   const sessionId = searchParams.get('session_id')
 
   useEffect(() => {
-    // Verify payment was successful
-    if (sessionId) {
-      // In production, you might want to verify the session with your backend
-      setLoading(false)
-    } else {
+    if (!sessionId) {
       router.push('/')
+      return
     }
+
+    async function verifyAndFulfill() {
+      try {
+        const res = await fetch('/api/payment/fulfill', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          console.error('Fulfill booking failed:', data.error)
+        }
+      } catch (err) {
+        console.error('Fulfill booking error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    verifyAndFulfill()
   }, [sessionId, router])
 
   if (loading) {
