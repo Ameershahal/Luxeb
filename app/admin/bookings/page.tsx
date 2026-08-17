@@ -91,6 +91,40 @@ interface Category {
   isActive: boolean
 }
 
+interface AdminBooking {
+  _id: string
+  confirmationNumber?: string
+  client: {
+    firstName: string
+    lastName: string
+    email: string
+    phone: string
+    notes?: string
+  }
+  services?: {
+    name: string
+    category: string
+    duration: number
+    price: number
+  }[]
+  service?: {
+    name: string
+  }
+  stylist?: {
+    name: string
+  } | null
+  dateTime: {
+    date: string
+    time: string
+  }
+  status: "pending" | "confirmed" | "cancelled" | "completed"
+  payment?: {
+    amount: number
+    currency: string
+    status: string
+  }
+}
+
 export default function AdminBookings() {
   const [activeTab, setActiveTab] = useState<"bookings" | "stylists" | "services" | "categories">("bookings")
   const [searchQuery, setSearchQuery] = useState("")
@@ -160,38 +194,42 @@ export default function AdminBookings() {
     isActive: true,
   })
 
-  // Mock bookings data (local state so actions can update status)
-  const initialBookings = [
-    {
-      id: 1,
-      client: "Sarah Johnson",
-      service: "Gel Manicure",
-      stylist: "Sofia Chen",
-      date: "2024-01-15",
-      time: "2:00 PM",
-      status: "pending",
-    },
-    {
-      id: 2,
-      client: "Emily Davis",
-      service: "Balayage",
-      stylist: "Marie Laurent",
-      date: "2024-01-16",
-      time: "10:00 AM",
-      status: "confirmed",
-    },
-    {
-      id: 3,
-      client: "Jessica Martinez",
-      service: "Signature Facial",
-      stylist: "Emma Rose",
-      date: "2024-01-17",
-      time: "3:30 PM",
-      status: "pending",
-    },
-  ]
+  // Bookings from database
+  const [bookings, setBookings] = useState<AdminBooking[]>([])
+  const [isBookingsLoading, setIsBookingsLoading] = useState(true)
 
-  const [bookings, setBookings] = useState(initialBookings)
+  const fetchBookings = async () => {
+    try {
+      setIsBookingsLoading(true)
+      const response = await fetch("/api/admin/bookings")
+      const data = await response.json()
+
+      if (data.success) {
+        setBookings(data.bookings || [])
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to fetch bookings",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error fetching bookings:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch bookings",
+        variant: "destructive",
+      })
+    } finally {
+      setIsBookingsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === "bookings") {
+      fetchBookings()
+    }
+  }, [activeTab])
 
   // Fetch stylists
   useEffect(() => {
@@ -954,10 +992,34 @@ export default function AdminBookings() {
     }
   }
 
+  const getClientName = (booking: AdminBooking) =>
+    `${booking.client?.firstName || ""} ${booking.client?.lastName || ""}`.trim() || "—"
+
+  const getServiceNames = (booking: AdminBooking) => {
+    if (booking.services?.length) {
+      return booking.services.map((s) => s.name).join(", ")
+    }
+    return booking.service?.name || "—"
+  }
+
+  const formatBookingDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    if (Number.isNaN(date.getTime())) return dateStr
+    return date.toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    })
+  }
+
   const filteredBookings = bookings.filter((booking) => {
+    const clientName = getClientName(booking).toLowerCase()
+    const serviceNames = getServiceNames(booking).toLowerCase()
     const matchesSearch =
-      booking.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      booking.service.toLowerCase().includes(searchQuery.toLowerCase())
+      clientName.includes(searchQuery.toLowerCase()) ||
+      serviceNames.includes(searchQuery.toLowerCase()) ||
+      (booking.confirmationNumber || "").toLowerCase().includes(searchQuery.toLowerCase())
     const matchesFilter = filter === "all" || booking.status === filter
     return matchesSearch && matchesFilter
   })
@@ -966,12 +1028,43 @@ export default function AdminBookings() {
     stylist.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const updateBookingStatus = (id: number, status: "pending" | "confirmed" | "cancelled") => {
-    setBookings((prev) =>
-      prev.map((booking) =>
-        booking.id === id ? { ...booking, status } : booking
-      )
-    )
+  const updateBookingStatus = async (
+    id: string,
+    status: "pending" | "confirmed" | "cancelled"
+  ) => {
+    try {
+      const response = await fetch(`/api/admin/bookings/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      })
+      const data = await response.json()
+
+      if (data.success) {
+        setBookings((prev) =>
+          prev.map((booking) =>
+            booking._id === id ? { ...booking, status } : booking
+          )
+        )
+        toast({
+          title: "Updated",
+          description: `Booking marked as ${status}`,
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to update booking",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error updating booking:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update booking",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -1116,6 +1209,16 @@ export default function AdminBookings() {
 
           {/* Bookings Table */}
           <div className="border border-border rounded-lg">
+            {isBookingsLoading ? (
+              <div className="text-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading bookings...</p>
+              </div>
+            ) : filteredBookings.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No bookings found.</p>
+              </div>
+            ) : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -1129,15 +1232,18 @@ export default function AdminBookings() {
               </TableHeader>
               <TableBody>
                 {filteredBookings.map((booking) => (
-                  <TableRow key={booking.id}>
-                    <TableCell className="font-medium">{booking.client}</TableCell>
-                    <TableCell>{booking.service}</TableCell>
-                    <TableCell>{booking.stylist}</TableCell>
+                  <TableRow key={booking._id}>
+                    <TableCell className="font-medium">
+                      <div>{getClientName(booking)}</div>
+                      <div className="text-xs text-muted-foreground">{booking.client?.email}</div>
+                    </TableCell>
+                    <TableCell>{getServiceNames(booking)}</TableCell>
+                    <TableCell>{booking.stylist?.name || "Any available"}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Clock className="h-3 w-3 text-muted-foreground" />
                         <span className="text-sm">
-                          {booking.date} at {booking.time}
+                          {formatBookingDate(booking.dateTime.date)} at {booking.dateTime.time}
                         </span>
                       </div>
                     </TableCell>
@@ -1162,7 +1268,7 @@ export default function AdminBookings() {
                               variant="ghost"
                               size="icon"
                               className="text-primary"
-                              onClick={() => updateBookingStatus(booking.id, "confirmed")}
+                              onClick={() => updateBookingStatus(booking._id, "confirmed")}
                               aria-label="Mark booking as confirmed"
                             >
                               <Check className="h-4 w-4" />
@@ -1171,12 +1277,23 @@ export default function AdminBookings() {
                               variant="ghost"
                               size="icon"
                               className="text-destructive"
-                              onClick={() => updateBookingStatus(booking.id, "cancelled")}
+                              onClick={() => updateBookingStatus(booking._id, "cancelled")}
                               aria-label="Cancel booking"
                             >
                               <X className="h-4 w-4" />
                             </Button>
                           </>
+                        )}
+                        {booking.status === "confirmed" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => updateBookingStatus(booking._id, "cancelled")}
+                            aria-label="Cancel booking"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         )}
                       </div>
                     </TableCell>
@@ -1184,6 +1301,7 @@ export default function AdminBookings() {
                 ))}
               </TableBody>
             </Table>
+            )}
           </div>
         </>
       )}
