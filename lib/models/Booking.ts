@@ -110,8 +110,8 @@ const BookingSchema = new Schema<IBooking>(
   }
 )
 
-// Generate confirmation number before saving
-BookingSchema.pre('save', function (next) {
+// Generate confirmation number before validation/save
+BookingSchema.pre('validate', function (next) {
   if (!this.confirmationNumber) {
     this.confirmationNumber = `LB-${Date.now().toString(36).toUpperCase()}`
   }
